@@ -305,6 +305,7 @@ public class KudoSerializer {
       SlicedBufferSerializer serializer = new SlicedBufferSerializer(rowOffset, numRows, bufferType,
           out, metrics);
       Visitors.visitColumns(columns, serializer);
+      bytesWritten += serializer.getTotalDataLen();
       metrics.addWrittenBytes(serializer.getTotalDataLen());
     }
 
