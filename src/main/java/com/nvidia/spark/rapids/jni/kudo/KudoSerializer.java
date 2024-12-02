@@ -165,6 +165,14 @@ public class KudoSerializer {
   }
 
   /**
+   * Get the flattened column count of the schema.
+   * @return the flattened column count of the schema
+   */
+  public int getFlattenedColumnCount() {
+    return flattenedColumnCount;
+  }
+
+  /**
    * Write partition of a table to a stream. This method is used for test only.
    * <br/>
    * The caller should ensure that table's schema matches the schema used to create this serializer, otherwise behavior
