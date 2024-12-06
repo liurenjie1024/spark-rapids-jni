@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Visible for testing
  */
-class DataOutputStreamWriter extends DataWriter {
+class DataOutputStreamWriter implements DataWriter {
   private final byte[] arrayBuffer = new byte[1024];
   private final DataOutputStream dout;
 

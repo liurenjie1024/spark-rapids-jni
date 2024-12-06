@@ -20,12 +20,9 @@ import ai.rapids.cudf.HostMemoryBuffer;
 
 import java.io.IOException;
 
-/**
- * Visible for testing
- */
-abstract class DataWriter {
+public interface DataWriter {
 
-  public abstract void writeInt(int i) throws IOException;
+  void writeInt(int i) throws IOException;
 
   /**
    * Copy data from src starting at srcOffset and going for len bytes.
@@ -34,11 +31,9 @@ abstract class DataWriter {
    * @param srcOffset offset to start at.
    * @param len       amount to copy.
    */
-  public abstract void copyDataFrom(HostMemoryBuffer src, long srcOffset, long len) throws IOException;
+  void copyDataFrom(HostMemoryBuffer src, long srcOffset, long len) throws IOException;
 
-  public void flush() throws IOException {
-    // NOOP by default
-  }
+  void flush() throws IOException;
 
-  public abstract void write(byte[] arr, int offset, int length) throws IOException;
+  void write(byte[] arr, int offset, int length) throws IOException;
 }
