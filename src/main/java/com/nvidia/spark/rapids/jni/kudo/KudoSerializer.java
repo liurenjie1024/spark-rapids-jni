@@ -232,16 +232,24 @@ public class KudoSerializer {
    */
   public WriteMetrics writeToStreamWithMetrics(HostColumnVector[] columns, OutputStream out,
                                                int rowOffset, int numRows) {
+
+    return writeToStreamWithMetrics(columns, writerFrom(out), rowOffset, numRows);
+  }
+
+  public WriteMetrics writeToStreamWithMetrics(HostColumnVector[] columns, DataWriter out,
+                                               int rowOffset, int numRows) {
     ensure(numRows > 0, () -> "numRows must be > 0, but was " + numRows);
     ensure(columns.length > 0, () -> "columns must not be empty, for row count only records " +
         "please call writeRowCountToStream");
 
     try {
-      return writeSliced(columns, writerFrom(out), rowOffset, numRows);
+      return writeSliced(columns, out, rowOffset, numRows);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
+
+
 
   /**
    * Write a row count only record to an output stream.
