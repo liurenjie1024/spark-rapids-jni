@@ -353,8 +353,8 @@ public class KudoSerializer {
   private static DataWriter writerFrom(OutputStream out) {
     if (out instanceof DataOutputStream) {
       return new DataOutputStreamWriter((DataOutputStream) out);
-    } else if (out instanceof ByteArrayOutputStream) {
-      return new ByteArrayOutputStreamWriter((ByteArrayOutputStream) out);
+    } else if (out instanceof OpenByteArrayOutputStream) {
+      return new OpenByteArrayOutputStreamWriter((OpenByteArrayOutputStream) out);
     } else {
       return new DataOutputStreamWriter(new DataOutputStream(new BufferedOutputStream(out)));
     }

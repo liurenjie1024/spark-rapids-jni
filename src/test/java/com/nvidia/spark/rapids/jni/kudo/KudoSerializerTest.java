@@ -21,7 +21,6 @@ import com.nvidia.spark.rapids.jni.Arms;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +53,7 @@ public class KudoSerializerTest {
 
   @Test
   public void testRowCountOnly() throws Exception {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    OpenByteArrayOutputStream out = new OpenByteArrayOutputStream();
     long bytesWritten = KudoSerializer.writeRowCountToStream(out, 5);
     assertEquals(28, bytesWritten);
 
@@ -74,7 +73,7 @@ public class KudoSerializerTest {
     KudoSerializer serializer = new KudoSerializer(buildSimpleTestSchema());
 
     try (Table t = buildSimpleTable()) {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      OpenByteArrayOutputStream out = new OpenByteArrayOutputStream();
       long bytesWritten = serializer.writeToStreamWithMetrics(t, out, 0, 4).getWrittenBytes();
       assertEquals(189, bytesWritten);
 
@@ -363,7 +362,7 @@ public class KudoSerializerTest {
     try {
       KudoSerializer serializer = new KudoSerializer(schemaOf(expected));
 
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      OpenByteArrayOutputStream bout = new OpenByteArrayOutputStream();
       for (TableSlice slice : tableSlices) {
         serializer.writeToStreamWithMetrics(slice.getBaseTable(), bout, slice.getStartRow(), slice.getNumRows());
       }
