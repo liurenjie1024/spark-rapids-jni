@@ -52,11 +52,12 @@ public class ByteArrayOutputStreamWriter implements DataWriter {
   @Override
   public void copyDataFrom(HostMemoryBuffer src, long srcOffset, long len) throws IOException {
     try {
-      ENSURE_CAPACITY.invoke(out, (int) len);
-      byte[] buf = (byte[]) BUF_FIELD.get(out);
+      int lenInt = toIntExact(len);
       int count = (int) COUNT_FIELD.get(out);
 
-      int lenInt = toIntExact(len);
+      ENSURE_CAPACITY.invoke(out, len + count);
+      byte[] buf = (byte[]) BUF_FIELD.get(out);
+
 
       src.getBytes(buf, count, srcOffset, lenInt);
       COUNT_FIELD.set(out, count + lenInt);
