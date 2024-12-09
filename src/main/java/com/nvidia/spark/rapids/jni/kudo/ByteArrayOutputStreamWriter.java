@@ -55,15 +55,13 @@ public class ByteArrayOutputStreamWriter implements DataWriter {
       int lenInt = toIntExact(len);
       int count = (int) COUNT_FIELD.get(out);
 
-      ENSURE_CAPACITY.invoke(out, len + count);
+      ENSURE_CAPACITY.invoke(out, lenInt + count);
       byte[] buf = (byte[]) BUF_FIELD.get(out);
 
 
       src.getBytes(buf, count, srcOffset, lenInt);
       COUNT_FIELD.set(out, count + lenInt);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
-    } catch (InvocationTargetException e) {
+    } catch (IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
