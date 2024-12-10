@@ -162,6 +162,7 @@ class MergedInfoCalc2 extends MultiKudoTableVisitor2<Void, Void, Void> {
   static MergedInfoCalc2 calc(Schema schema, List<KudoTable> table) {
     MergedInfoCalc2 calc = new MergedInfoCalc2(table);
     Visitors.visitSchema(schema, calc);
+    System.out.println("MergedInfoCalc2: " + calc);
     return calc;
   }
 }
