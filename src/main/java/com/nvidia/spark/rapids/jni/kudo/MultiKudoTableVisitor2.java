@@ -285,6 +285,7 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
       startOffset += (sliceInfoOf(tableIdx).getRowCount() + 1) * Integer.BYTES;
     }
 
+    System.out.println("copyDataBuffer, startOffset: " + startOffset + ", dataLen: " + dataLen);
     dst.copyFromHostBuffer(dstOffset, tables.get(tableIdx).getBuffer(), startOffset, dataLen);
   }
 
