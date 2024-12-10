@@ -28,7 +28,6 @@ import ai.rapids.cudf.Table;
 import com.nvidia.spark.rapids.jni.Pair;
 import com.nvidia.spark.rapids.jni.schema.Visitors;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -168,11 +167,17 @@ public class KudoSerializer {
 
   private final Schema schema;
   private final int flattenedColumnCount;
+  private final boolean useV2;
 
   public KudoSerializer(Schema schema) {
+    this(schema, true);
+  }
+  
+  public KudoSerializer(Schema schema, boolean useV2) {
     requireNonNull(schema, "schema is null");
     this.schema = schema;
     this.flattenedColumnCount = schema.getFlattenedColumnNames().length;
+    this.useV2 = useV2;
   }
 
   /**
@@ -286,6 +291,10 @@ public class KudoSerializer {
    * @return the merged table, and metrics during merge.
    */
   public Pair<KudoHostMergeResult, MergeMetrics> mergeOnHost(List<KudoTable> kudoTables) {
+    if (useV2) {
+      return mergeOnHostV2(kudoTables);
+    }
+
     MergeMetrics.Builder metricsBuilder = MergeMetrics.builder();
 
     MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
@@ -293,8 +302,19 @@ public class KudoSerializer {
     KudoHostMergeResult result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
         metricsBuilder::mergeIntoHostBufferTime);
     return Pair.of(result, metricsBuilder.build());
-
   }
+
+
+  private Pair<KudoHostMergeResult, MergeMetrics> mergeOnHostV2(List<KudoTable> kudoTables) {
+    MergeMetrics.Builder metricsBuilder = MergeMetrics.builder();
+
+    MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
+        metricsBuilder::calcHeaderTime);
+    KudoHostMergeResult result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
+        metricsBuilder::mergeIntoHostBufferTime);
+    return Pair.of(result, metricsBuilder.build());
+  }
+
 
   /**
    * Merge a list of kudo tables into a contiguous table.
@@ -338,6 +358,35 @@ public class KudoSerializer {
       bytesWritten += serializer.getTotalDataLen();
       metrics.addWrittenBytes(serializer.getTotalDataLen());
     }
+
+    if (bytesWritten != header.getTotalDataLen()) {
+      throw new IllegalStateException("Header total data length: " + header.getTotalDataLen() +
+          " does not match actual written data length: " + bytesWritten +
+          ", rowOffset: " + rowOffset + " numRows: " + numRows);
+    }
+
+    out.flush();
+
+    return metrics;
+  }
+
+  private WriteMetrics writeSlicedV2(HostColumnVector[] columns, DataWriter out, int rowOffset,
+                                     int numRows) throws Exception {
+    WriteMetrics metrics = new WriteMetrics();
+    KudoTableHeaderCalc2 headerCalc =
+        new KudoTableHeaderCalc2(rowOffset, numRows, flattenedColumnCount);
+    withTime(() -> Visitors.visitColumns(columns, headerCalc), metrics::addCalcHeaderTime);
+    KudoTableHeader header = headerCalc.getHeader();
+    long currentTime = System.nanoTime();
+    header.writeTo(out);
+    metrics.addCopyHeaderTime(System.nanoTime() - currentTime);
+    metrics.addWrittenBytes(header.getSerializedSize());
+
+    SlicedColumnSerializer serializer = new SlicedColumnSerializer(rowOffset, numRows, out, metrics);
+    Visitors.visitColumns(columns, serializer);
+    long bytesWritten = serializer.getTotalDataLen();
+    metrics.addWrittenBytes(bytesWritten);
+
 
     if (bytesWritten != header.getTotalDataLen()) {
       throw new IllegalStateException("Header total data length: " + header.getTotalDataLen() +
