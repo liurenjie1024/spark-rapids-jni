@@ -240,7 +240,6 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
     return totalRowCountStack.getLast();
   }
 
-
   protected boolean hasNull() {
     return hasNull;
   }
@@ -274,13 +273,11 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
   }
 
   protected void copyDataBuffer(Schema type, HostMemoryBuffer dst, long dstOffset, int tableIdx, int dataLen) {
-    long startOffset;
+    long startOffset = currentColumnOffsets[tableIdx];
     if (tables.get(tableIdx).getHeader().hasValidityBuffer(currentIdx)) {
-      startOffset = currentColumnOffsets[tableIdx] + sliceInfoOf(tableIdx)
+      startOffset += sliceInfoOf(tableIdx)
           .getValidityBufferInfo()
           .getBufferLength();
-    } else {
-      startOffset = currentColumnOffsets[tableIdx];
     }
 
     if (type.getType().hasOffsets()) {

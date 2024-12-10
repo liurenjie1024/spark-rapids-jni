@@ -172,7 +172,7 @@ public class KudoSerializer {
   public KudoSerializer(Schema schema) {
     this(schema, true);
   }
-  
+
   public KudoSerializer(Schema schema, boolean useV2) {
     requireNonNull(schema, "schema is null");
     this.schema = schema;
