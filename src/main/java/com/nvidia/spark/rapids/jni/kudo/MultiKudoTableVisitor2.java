@@ -184,7 +184,7 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
     }
   }
 
-  private void updateOffsets(boolean updateOffset, boolean updateData, boolean updateSliceInfo, int sizeInBytes) {
+  private void updateOffsets(boolean hasOffset, boolean hasData, boolean updateSliceInfo, int sizeInBytes) {
     long totalRowCount = 0;
     for (int tableIdx = 0; tableIdx < tables.size(); tableIdx++) {
       SliceInfo sliceInfo = sliceInfoOf(tableIdx);
@@ -204,22 +204,20 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
           columnLen += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
         }
 
-        if (updateOffset) {
+        if (hasOffset) {
           columnLen += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
-          if (updateData) {
+          if (hasData) {
             // string type
             columnLen += padForHostAlignment(strDataLen[tableIdx]);
           }
           // otherwise list type
         } else {
-          if (updateData) {
+          if (hasData) {
             // primitive type
             columnLen += padForHostAlignment(sliceInfo.getRowCount() * sizeInBytes);
           }
         }
-
         currentColumnOffsets[tableIdx] += columnLen;
-
       } else {
         if (updateSliceInfo) {
           sliceInfoStack[tableIdx].addLast(new SliceInfo(0, 0));

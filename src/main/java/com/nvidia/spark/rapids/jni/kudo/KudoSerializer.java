@@ -249,7 +249,11 @@ public class KudoSerializer {
         "please call writeRowCountToStream");
 
     try {
-      return writeSliced(columns, out, rowOffset, numRows);
+      if (useV2) {
+        return writeSlicedV2(columns, out, rowOffset, numRows);
+      } else {
+        return writeSliced(columns, out, rowOffset, numRows);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
