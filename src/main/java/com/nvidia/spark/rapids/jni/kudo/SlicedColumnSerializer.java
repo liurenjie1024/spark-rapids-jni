@@ -116,7 +116,9 @@ class SlicedColumnSerializer implements HostColumnsVisitor<Void> {
     SliceInfo parent = sliceInfos.getLast();
     try {
       totalDataLen += this.copySlicedValidity(col, parent);
-      totalDataLen += this.copySlicedOffset(col, parent);
+      if (col.getType().hasOffsets()) {
+        totalDataLen += this.copySlicedOffset(col, parent);
+      }
       totalDataLen += this.copySlicedData(col, parent);
       return null;
     } catch (IOException e) {
