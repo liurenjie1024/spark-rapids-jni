@@ -256,9 +256,9 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
   protected int offsetOf(int tableIdx, long rowIdx) {
     long startOffset;
     if (tables.get(tableIdx).getHeader().hasValidityBuffer(currentIdx)) {
-      startOffset = currentColumnOffsets[tableIdx] + sliceInfoOf(tableIdx)
+      startOffset = currentColumnOffsets[tableIdx] + padForHostAlignment(sliceInfoOf(tableIdx)
           .getValidityBufferInfo()
-          .getBufferLength();
+          .getBufferLength());
     } else {
       startOffset = currentColumnOffsets[tableIdx];
     }
@@ -276,13 +276,13 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
   protected void copyDataBuffer(Schema type, HostMemoryBuffer dst, long dstOffset, int tableIdx, int dataLen) {
     long startOffset = currentColumnOffsets[tableIdx];
     if (tables.get(tableIdx).getHeader().hasValidityBuffer(currentIdx)) {
-      startOffset += sliceInfoOf(tableIdx)
+      startOffset += padForHostAlignment(sliceInfoOf(tableIdx)
           .getValidityBufferInfo()
-          .getBufferLength();
+          .getBufferLength());
     }
 
     if (type.getType().hasOffsets()) {
-      startOffset += (sliceInfoOf(tableIdx).getRowCount() + 1) * Integer.BYTES;
+      startOffset += padForHostAlignment((sliceInfoOf(tableIdx).getRowCount() + 1) * Integer.BYTES);
     }
 
     System.out.println("copyDataBuffer, startOffset: " + startOffset + ", dataLen: " + dataLen);
