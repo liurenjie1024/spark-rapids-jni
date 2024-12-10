@@ -26,6 +26,7 @@ import ai.rapids.cudf.Schema;
 import com.nvidia.spark.rapids.jni.schema.SchemaVisitor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
@@ -228,9 +229,11 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
     if (updateSliceInfo) {
       totalRowCountStack.addLast(toIntExact(totalRowCount));
     }
+
+    System.out.println("After updateOffsets, current idx: " + currentIdx +
+        ", totalRowCountStack: " + totalRowCountStack +
+        ", currentColumnOffsets: " + Arrays.toString(currentColumnOffsets));
   }
-
-
 
   // Below parts are information about current column
 
