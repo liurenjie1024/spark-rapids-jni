@@ -325,9 +325,7 @@ class KudoTableMerger2 extends MultiKudoTableVisitor2<Void, Void, KudoHostMergeR
     return Arms.closeIfException(HostMemoryBuffer.allocate(mergedInfo.getTotalDataLen()),
         buffer -> {
           KudoTableMerger2 merger = new KudoTableMerger2(serializedTables, buffer, mergedInfo.getColumnOffsets());
-          KudoHostMergeResult result = Visitors.visitSchema(schema, merger);
-          System.out.println("KudoTableMerger2: " + result);
-          return result;
+          return Visitors.visitSchema(schema, merger);
         });
   }
 }

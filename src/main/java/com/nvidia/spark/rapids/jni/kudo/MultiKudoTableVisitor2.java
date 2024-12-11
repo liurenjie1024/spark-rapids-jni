@@ -229,10 +229,6 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
     if (updateSliceInfo) {
       totalRowCountStack.addLast(toIntExact(totalRowCount));
     }
-
-    System.out.println("After updateOffsets, current idx: " + currentIdx +
-        ", totalRowCountStack: " + totalRowCountStack +
-        ", currentColumnOffsets: " + Arrays.toString(currentColumnOffsets));
   }
 
   // Below parts are information about current column
@@ -285,7 +281,6 @@ abstract class MultiKudoTableVisitor2<T, P, R> implements SchemaVisitor<T, P, R>
       startOffset += padForHostAlignment((sliceInfoOf(tableIdx).getRowCount() + 1) * Integer.BYTES);
     }
 
-    System.out.println("copyDataBuffer, startOffset: " + startOffset + ", dataLen: " + dataLen);
     dst.copyFromHostBuffer(dstOffset, tables.get(tableIdx).getBuffer(), startOffset, dataLen);
   }
 
