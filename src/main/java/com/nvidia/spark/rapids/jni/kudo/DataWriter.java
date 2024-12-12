@@ -24,6 +24,14 @@ public interface DataWriter {
 
   void writeInt(int i) throws IOException;
 
+
+  /**
+   * Reserve space in the buffer for the given size.
+   * @param size
+   * @throws IOException
+   */
+  default void reserve(int size) throws IOException {}
+
   /**
    * Copy data from src starting at srcOffset and going for len bytes.
    *

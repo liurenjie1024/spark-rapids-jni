@@ -14,6 +14,11 @@ public class OpenByteArrayOutputStreamWriter implements DataWriter {
   }
 
   @Override
+  public void reserve(int size) throws IOException {
+    out.ensureCapacity(size);
+  }
+
+  @Override
   public void writeInt(int v) throws IOException {
     out.ensureCapacity(4 + out.size());
     out.write((v >>> 24) & 0xFF);

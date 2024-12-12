@@ -17,6 +17,7 @@
 package com.nvidia.spark.rapids.jni.kudo;
 
 import static com.nvidia.spark.rapids.jni.Preconditions.ensure;
+import static java.lang.Math.toIntExact;
 import static java.util.Objects.requireNonNull;
 
 import ai.rapids.cudf.BufferType;
@@ -331,6 +332,9 @@ public class KudoSerializer {
         new KudoTableHeaderCalc(rowOffset, numRows, flattenedColumnCount);
     withTime(() -> Visitors.visitColumns(columns, headerCalc), metrics::addCalcHeaderTime);
     KudoTableHeader header = headerCalc.getHeader();
+
+    out.reserve(toIntExact(header.getSerializedSize() + header.getTotalDataLen()));
+
     long currentTime = System.nanoTime();
     header.writeTo(out);
     metrics.addCopyHeaderTime(System.nanoTime() - currentTime);
