@@ -29,7 +29,6 @@ import ai.rapids.cudf.Table;
 import com.nvidia.spark.rapids.jni.Pair;
 import com.nvidia.spark.rapids.jni.schema.Visitors;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -213,6 +212,25 @@ public class KudoSerializer {
     }
   }
 
+  WriteMetrics writeToStreamWithMetrics(Table table, List<OutputArgs> args) {
+    HostColumnVector[] columns = null;
+    try {
+      columns = IntStream.range(0, table.getNumberOfColumns())
+          .mapToObj(table::getColumn)
+          .map(c -> c.copyToHostAsync(Cuda.DEFAULT_STREAM))
+          .toArray(HostColumnVector[]::new);
+
+      Cuda.DEFAULT_STREAM.sync();
+      return writeToStreamWithMetrics(columns, args);
+    } finally {
+      if (columns != null) {
+        for (HostColumnVector column : columns) {
+          column.close();
+        }
+      }
+    }
+  }
+
   /**
    * Write partition of an array of {@link HostColumnVector} to an output stream.
    * See {@link #writeToStreamWithMetrics(HostColumnVector[], OutputStream, int, int)} for more
@@ -242,6 +260,59 @@ public class KudoSerializer {
                                                int rowOffset, int numRows) {
 
     return writeToStreamWithMetrics(columns, writerFrom(out), rowOffset, numRows);
+  }
+
+  public WriteMetrics writeToStreamWithMetrics(HostColumnVector[] columns, List<OutputArgs> outputArgs) {
+    ensure(columns.length > 0, () -> "columns must not be empty, for row count only records " +
+        "please call writeRowCountToStream");
+    requireNonNull(outputArgs, "outputArgs is null");
+    ensure(!outputArgs.isEmpty(), "outputArgs is empty");
+
+    WriteMetrics metrics = new WriteMetrics();
+    try {
+      MultiKudoTableHeaderCalc headerCalc =
+          new MultiKudoTableHeaderCalc(outputArgs, flattenedColumnCount);
+      withTime(() -> Visitors.visitColumns(columns, headerCalc), metrics::addCalcHeaderTime);
+      List<KudoTableHeader> header = headerCalc.getHeaders();
+
+      long totalHeaderDataLen = 0;
+      long expectedTotalDataLen = 0;
+      for (int i = 0; i < outputArgs.size(); i++) {
+        OutputArgs outputArg = outputArgs.get(i);
+        DataWriter out = outputArg.getDataWriter();
+        KudoTableHeader headerForOutput = header.get(i);
+        out.reserve(toIntExact(headerForOutput.getSerializedSize() + headerForOutput.getTotalDataLen()));
+
+        totalHeaderDataLen += headerForOutput.getSerializedSize();
+        expectedTotalDataLen += headerForOutput.getTotalDataLen();
+        long currentTime = System.nanoTime();
+        headerForOutput.writeTo(out);
+        metrics.addCopyHeaderTime(System.nanoTime() - currentTime);
+        metrics.addWrittenBytes(headerForOutput.getSerializedSize());
+      }
+
+
+      for (BufferType bufferType : ALL_BUFFER_TYPES) {
+        MultiSlicedBufferSerializer serializer = new MultiSlicedBufferSerializer(outputArgs,
+            bufferType, measureCopyBufferTime, metrics);
+        Visitors.visitColumns(columns, serializer);
+      }
+
+      long actualTotalDataLen = metrics.getWrittenBytes() - totalHeaderDataLen;
+
+      if (expectedTotalDataLen != actualTotalDataLen) {
+        throw new IllegalStateException("Expected total data length: " + expectedTotalDataLen +
+            " does not match actual written data length: " + actualTotalDataLen);
+      }
+
+      for (OutputArgs outputArg : outputArgs) {
+        outputArg.getDataWriter().flush();
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    return metrics;
   }
 
   public WriteMetrics writeToStreamWithMetrics(HostColumnVector[] columns, DataWriter out,
@@ -361,7 +432,7 @@ public class KudoSerializer {
     return metrics;
   }
 
-  private static DataWriter writerFrom(OutputStream out) {
+  static DataWriter writerFrom(OutputStream out) {
     if (out instanceof DataOutputStream) {
       return new DataOutputStreamWriter((DataOutputStream) out);
     } else if (out instanceof OpenByteArrayOutputStream) {
