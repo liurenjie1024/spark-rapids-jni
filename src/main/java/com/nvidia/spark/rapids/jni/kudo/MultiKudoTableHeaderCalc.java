@@ -96,7 +96,6 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
       this.totalDataLen[i] += validityBufferLength + offsetBufferLength;
     }
 
-    this.setHasValidity(col.hasValidityVector());
 
     for (int i=0; i<outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].getLast();
@@ -114,6 +113,7 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
       sliceInfos[i].addLast(current);
     }
 
+    this.setHasValidity(col.hasValidityVector());
     return null;
   }
 
@@ -134,9 +134,8 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
       long validityBufferLen = dataLenOfValidityBuffer(col, parent);
       this.validityBufferLen[i] += validityBufferLen;
       this.totalDataLen[i] += validityBufferLen;
-
-      this.setHasValidity(col.hasValidityVector());
     }
+
 
     for (int i=0; i<outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].peekLast();
