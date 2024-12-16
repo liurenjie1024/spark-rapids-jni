@@ -443,12 +443,11 @@ public class KudoSerializerTest {
       List<OpenByteArrayOutputStream> bouts = new ArrayList<>(tableSlices.size());
 
       for (List<TableSlice> tableSliceList : tableSlices) {
-        OpenByteArrayOutputStream[] bout = new OpenByteArrayOutputStream[tableSliceList.size()];
         List<OutputArgs> outputArgs = new ArrayList<>(tableSliceList.size());
-        for (int i = 0; i < tableSliceList.size(); i++) {
-          TableSlice slice = tableSliceList.get(i);
-          bout[i] = new OpenByteArrayOutputStream();
-          outputArgs.add(new OutputArgs(slice.getStartRow(), slice.getNumRows(), bout[i]));
+        for (TableSlice slice : tableSliceList) {
+          OpenByteArrayOutputStream bout = new OpenByteArrayOutputStream();
+          bouts.add(bout);
+          outputArgs.add(new OutputArgs(slice.getStartRow(), slice.getNumRows(), bout));
         }
 
         serializer.writeToStreamWithMetrics(tableSliceList.get(0).getBaseTable(), outputArgs);
