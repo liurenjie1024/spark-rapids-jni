@@ -16,9 +16,9 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
   private final int numFlattenedCols;
   private final byte[] bitset;
   private final List<OutputArgs> outputArgs;
-  private long[] validityBufferLen;
-  private long[] offsetBufferLen;
-  private long[] totalDataLen;
+  private final long[] validityBufferLen;
+  private final long[] offsetBufferLen;
+  private final long[] totalDataLen;
   private int nextColIdx;
 
   private Deque<SliceInfo>[] sliceInfos;
@@ -28,6 +28,8 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
     requireNonNull(outputArgs, "outputArgs is null");
     ensure(!outputArgs.isEmpty(), "outputArgs is empty");
     this.outputArgs = outputArgs;
+    this.validityBufferLen = new long[outputArgs.size()];
+    this.offsetBufferLen = new long[outputArgs.size()];
     this.totalDataLen = new long[outputArgs.size()];
     this.sliceInfos = new Deque[outputArgs.size()];
     for (int i = 0; i < outputArgs.size() ; i++) {
