@@ -29,6 +29,7 @@ import ai.rapids.cudf.Table;
 import com.nvidia.spark.rapids.jni.Pair;
 import com.nvidia.spark.rapids.jni.schema.Visitors;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -437,6 +438,8 @@ public class KudoSerializer {
       return new DataOutputStreamWriter((DataOutputStream) out);
     } else if (out instanceof OpenByteArrayOutputStream) {
       return new OpenByteArrayOutputStreamWriter((OpenByteArrayOutputStream) out);
+    } else if (out instanceof ByteArrayOutputStream) {
+      return new ByteArrayOutputStreamWriter((ByteArrayOutputStream) out);
     } else {
       return new DataOutputStreamWriter(new DataOutputStream(new BufferedOutputStream(out)));
     }
