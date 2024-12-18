@@ -20,6 +20,7 @@ import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,13 +30,16 @@ import ai.rapids.cudf.ColumnVector;
 import ai.rapids.cudf.ColumnView;
 import ai.rapids.cudf.DType;
 import ai.rapids.cudf.HostColumnVector;
+import ai.rapids.cudf.HostMemoryBuffer;
 import ai.rapids.cudf.Schema;
 import ai.rapids.cudf.Table;
 import com.nvidia.spark.rapids.jni.Arms;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
@@ -222,6 +226,36 @@ public class KudoSerializerTest {
       checkMergeTable(table2, asList(new TableSlice(509, 3, table1)));
       return null;
     });
+  }
+
+  @Test
+  public void testByteArrayOutputStreamWriter() throws Exception {
+    ByteArrayOutputStream bout = new ByteArrayOutputStream(32);
+    DataWriter writer = new ByteArrayOutputStreamWriter(bout);
+
+    writer.writeInt(0x12345678);
+
+    byte[] testByteArr1 = new byte[2097];
+    ThreadLocalRandom.current().nextBytes(testByteArr1);
+    writer.write(testByteArr1, 0, testByteArr1.length);
+
+    byte[] testByteArr2 = new byte[7896];
+    ThreadLocalRandom.current().nextBytes(testByteArr2);
+    try(HostMemoryBuffer buffer = HostMemoryBuffer.allocate(testByteArr2.length)) {
+      buffer.setBytes(0, testByteArr2, 0, testByteArr2.length);
+      writer.copyDataFrom(buffer, 0, testByteArr2.length);
+    }
+
+    byte[] expected = new byte[4 + testByteArr1.length + testByteArr2.length];
+    expected[0] = 0x12;
+    expected[1] = 0x34;
+    expected[2] = 0x56;
+    expected[3] = 0x78;
+    System.arraycopy(testByteArr1, 0, expected, 4, testByteArr1.length);
+    System.arraycopy(testByteArr2, 0, expected, 4 + testByteArr1.length,
+        testByteArr2.length);
+
+    assertArrayEquals(expected, bout.toByteArray());
   }
 
   private static Schema buildSimpleTestSchema() {
