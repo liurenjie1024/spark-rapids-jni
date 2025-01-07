@@ -170,16 +170,47 @@ public class KudoSerializer {
   private final Schema schema;
   private final int flattenedColumnCount;
   private final boolean measureCopyBufferTime;
+  private final boolean useNewConcat;
 
   public KudoSerializer(Schema schema) {
-    this(schema, false);
+    this(schema, false, true);
   }
 
-  public KudoSerializer(Schema schema, boolean measureCopyBufferTime) {
+  private KudoSerializer(Schema schema, boolean measureCopyBufferTime, boolean useNewConcat) {
     requireNonNull(schema, "schema is null");
+    ensure(schema.getNumChildren() > 0, "Top schema can't be empty");
     this.schema = schema;
     this.flattenedColumnCount = schema.getFlattenedColumnNames().length;
     this.measureCopyBufferTime = measureCopyBufferTime;
+    this.useNewConcat = useNewConcat;
+  }
+
+  public Builder builderOf(Schema schema) {
+    return new Builder(schema);
+  }
+
+  public static class Builder {
+    private Schema schema;
+    private boolean measureCopyBufferTime = false;
+    private boolean useNewConcat = true;
+
+    private Builder(Schema schema) {
+      this.schema = schema;
+    }
+
+    public Builder withMeasureCopyBufferTime(boolean measureCopyBufferTime) {
+      this.measureCopyBufferTime = measureCopyBufferTime;
+      return this;
+    }
+
+    public Builder withUseNewConcat(boolean useNewConcat) {
+      this.useNewConcat = useNewConcat;
+      return this;
+    }
+
+    public KudoSerializer build() {
+      return new KudoSerializer(schema, measureCopyBufferTime, useNewConcat);
+    }
   }
 
   /**
@@ -367,10 +398,19 @@ public class KudoSerializer {
   public Pair<KudoHostMergeResult, MergeMetrics> mergeOnHost(List<KudoTable> kudoTables) {
     MergeMetrics.Builder metricsBuilder = MergeMetrics.builder();
 
-    MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
-        metricsBuilder::calcHeaderTime);
-    KudoHostMergeResult result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
-        metricsBuilder::mergeIntoHostBufferTime);
+    KudoHostMergeResult result;
+    if (useNewConcat) {
+      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
+              metricsBuilder::calcHeaderTime);
+//      System.out.println("Merge info calc:" + mergedInfoCalc);
+      result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
+              metricsBuilder::mergeIntoHostBufferTime);
+    } else {
+      MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
+              metricsBuilder::calcHeaderTime);
+      result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
+              metricsBuilder::mergeIntoHostBufferTime);
+    }
     return Pair.of(result, metricsBuilder.build());
 
   }
@@ -490,5 +530,9 @@ public class KudoSerializer {
    */
   static long getValidityLengthInBytes(long rows) {
     return (rows + 7) / 8;
+  }
+
+  static int getValidityLengthInInts(int rows) {
+    return (rows + 31) / 32;
   }
 }
