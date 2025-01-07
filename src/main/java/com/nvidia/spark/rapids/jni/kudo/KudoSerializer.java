@@ -170,16 +170,18 @@ public class KudoSerializer {
   private final Schema schema;
   private final int flattenedColumnCount;
   private final boolean measureCopyBufferTime;
+  private final boolean useNewConcat;
 
   public KudoSerializer(Schema schema) {
-    this(schema, false);
+    this(schema, false, true);
   }
 
-  public KudoSerializer(Schema schema, boolean measureCopyBufferTime) {
+  public KudoSerializer(Schema schema, boolean measureCopyBufferTime, boolean useNewConcat) {
     requireNonNull(schema, "schema is null");
     this.schema = schema;
     this.flattenedColumnCount = schema.getFlattenedColumnNames().length;
     this.measureCopyBufferTime = measureCopyBufferTime;
+    this.useNewConcat = useNewConcat;
   }
 
   /**
@@ -369,8 +371,14 @@ public class KudoSerializer {
 
     MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
         metricsBuilder::calcHeaderTime);
-    KudoHostMergeResult result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
-        metricsBuilder::mergeIntoHostBufferTime);
+    KudoHostMergeResult result;
+    if (useNewConcat) {
+      result = withTime(() -> BaseSlicedBufferMerger.merge(schema, mergedInfoCalc),
+              metricsBuilder::mergeIntoHostBufferTime);
+    } else {
+      result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
+              metricsBuilder::mergeIntoHostBufferTime);
+    }
     return Pair.of(result, metricsBuilder.build());
 
   }
