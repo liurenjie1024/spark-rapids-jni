@@ -64,6 +64,7 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
         int curColIdx = getCurColumnIdx();
 
         SliceInfo sliceInfo = sliceInfoList[curColIdx];
+        System.out.println("Validity buffer offset: " + getOffset());
 
         if (getKudoTable().getHeader().hasValidityBuffer(curColIdx)) {
             nullCount[curColIdx] += copyValidityBuffer(getOutputBuffer()
