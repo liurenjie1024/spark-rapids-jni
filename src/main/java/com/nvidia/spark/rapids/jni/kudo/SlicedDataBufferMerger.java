@@ -49,5 +49,6 @@ class SlicedDataBufferMerger extends BaseSlicedBufferMerger {
                 getKudoTable().getBuffer(), getOffset(), inputDataLen[curColIdx]);
 
         increaseOffset(inputDataLen[curColIdx]);
+        outputDataOffset[curColIdx] += inputDataLen[curColIdx];
     }
 }
