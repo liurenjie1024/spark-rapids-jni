@@ -54,8 +54,17 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
 
     @Override
     void doVisitPrimitive(Schema primitiveType) {
-        outputSliceInfos[getCurColumnIdx()] = sliceInfoStack.getLast();
-        deserializeOffset();
+        int curColumnIdx = getCurColumnIdx();
+        outputSliceInfos[curColumnIdx] = sliceInfoStack.getLast();
+        SliceInfo sliceInfo = deserializeOffset();
+        if (primitiveType.getType().hasOffsets()) {
+            // String type
+            dataLen[curColumnIdx] = sliceInfo.getRowCount();
+        } else {
+            // Fix sized type
+            dataLen[curColumnIdx] = outputSliceInfos[curColumnIdx].getRowCount() *
+                    primitiveType.getType().getSizeInBytes();
+        }
     }
 
     private SliceInfo deserializeOffset() {
