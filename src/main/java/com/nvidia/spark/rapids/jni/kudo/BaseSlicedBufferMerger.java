@@ -125,6 +125,7 @@ abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void>
                         SlicedDataBufferMerger dataBufferMerger = new SlicedDataBufferMerger(kudoTable, rowCounts,
                                 mergedInfo.getColumnOffsets(), buffer, offsetBufferMerger.getDataLen(), destDataOffsets);
                         Visitors.visitSchema(schema, dataBufferMerger);
+                        System.out.println("Dest data offsets: " + Arrays.toString(destDataOffsets));
 
                         for (int i = 0; i < colNum; i++) {
                             rowCounts[i] += offsetBufferMerger.getOutputSliceInfos()[i].getRowCount();
