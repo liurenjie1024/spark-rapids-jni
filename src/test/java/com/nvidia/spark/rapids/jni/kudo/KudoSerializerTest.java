@@ -159,6 +159,36 @@ public class KudoSerializerTest {
   }
 
   @Test
+  public void testMergeString() {
+      Arms.withResource(new ArrayList<Table>(), tables -> {
+                  Table table1 = new Table.TestBuilder()
+                          .column("A", "B", "C", "D", null, "TESTING", "1", "2", "3", "4",
+                                  "5", "6", "7", null, "9", "10", "11", "12", "13", null, "15")
+                          .build();
+                  tables.add(table1);
+
+                  Table table2 = new Table.TestBuilder()
+                          .column("A", "A", "C", "C", "E", "TESTING", "1", "2", "3", "4", "5",
+                                  "6", "7", "", "9", "10", "11", "12", "13", "", "15")
+                          .build();
+                  tables.add(table2);
+
+                  Table expected = new Table.TestBuilder()
+                          .column("C", "D", null, "TESTING", "1", "2", "3", "4",
+                                  "5", "6", "7", null, "9", "C", "E", "TESTING", "1", "2")
+                          .build();
+                  tables.add(expected);
+
+                  checkMergeTable(expected, asList(
+                          new TableSlice(2, 13, table1),
+                          new TableSlice(3, 5, table2)));
+
+                  return null;
+              }
+      );
+  }
+
+  @Test
   public void testMergeList() {
     Arms.withResource(new ArrayList<Table>(), tables -> {
       Table table1 = new Table.TestBuilder()
