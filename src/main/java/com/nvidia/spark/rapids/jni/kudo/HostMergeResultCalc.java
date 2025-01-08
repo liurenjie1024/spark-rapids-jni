@@ -5,6 +5,7 @@ import ai.rapids.cudf.Schema;
 import com.nvidia.spark.rapids.jni.schema.SchemaVisitor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class HostMergeResultCalc implements SchemaVisitor<Void, Void, KudoHostMergeResult> {
@@ -28,9 +29,7 @@ class HostMergeResultCalc implements SchemaVisitor<Void, Void, KudoHostMergeResu
     @Override
     public KudoHostMergeResult visitTopSchema(Schema schema, List<Void> children) {
         List<ColumnViewInfo> columnViewInfoList = new ArrayList<>(columnViewInfos.length);
-        for (ColumnViewInfo columnViewInfo : columnViewInfos) {
-            columnViewInfoList.add(columnViewInfo);
-        }
+        columnViewInfoList.addAll(Arrays.asList(columnViewInfos));
         return new KudoHostMergeResult(schema, hostMemoryBuffer, columnViewInfoList);
     }
 
