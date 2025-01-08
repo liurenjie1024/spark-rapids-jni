@@ -65,7 +65,6 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
         int curColIdx = getCurColumnIdx();
 
         SliceInfo sliceInfo = sliceInfoList[curColIdx];
-        System.out.println("Validity buffer offset: " + getOffset());
 
         if (getKudoTable().getHeader().hasValidityBuffer(curColIdx)) {
             nullCount[curColIdx] += copyValidityBuffer(getOutputBuffer()
@@ -96,10 +95,6 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
         int curSrcBitIdx = sliceInfo.getValidityBufferInfo().getBeginBit();
         int curDestByteIdx = destStartRow / 8;
         int curDestBitIdx = destStartRow % 8;
-
-        byte[] arr = new byte[srcBuffer.limit()];
-        srcBuffer.get(arr);
-        System.out.println("Source validity buffer: " + Arrays.toString(arr));
 
         while (curIdx < totalRowCount) {
             int leftRowCount = totalRowCount - curIdx;
