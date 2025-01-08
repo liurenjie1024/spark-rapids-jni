@@ -7,6 +7,7 @@ import com.nvidia.spark.rapids.jni.Arms;
 import com.nvidia.spark.rapids.jni.schema.SchemaVisitor;
 import com.nvidia.spark.rapids.jni.schema.Visitors;
 
+import java.util.Arrays;
 import java.util.List;
 
 abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void> {
@@ -108,6 +109,7 @@ abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void>
                         SlicedOffsetBufferMerger offsetBufferMerger = new SlicedOffsetBufferMerger(kudoTable,
                                 rowCounts, mergedInfo.getColumnOffsets(), buffer);
                         Visitors.visitSchema(schema, offsetBufferMerger);
+                        System.out.println("row counts:" + Arrays.toString(rowCounts));
 
                         SlicedValidityBufferMerger validityBufferMerger = new SlicedValidityBufferMerger(kudoTable,
                                 rowCounts, mergedInfo.getColumnOffsets(), buffer,
