@@ -35,15 +35,17 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
 
     @Override
     void doVisitStruct() {
-        outputSliceInfos[getCurColumnIdx()] = sliceInfoStack.getLast();
-        dataLen[getCurColumnIdx()] = 0;
+        int curColumnIdx = getCurColumnIdx();
+        outputSliceInfos[curColumnIdx] = sliceInfoStack.getLast();
+        dataLen[curColumnIdx] = 0;
         deserializeOffset();
     }
 
     @Override
     void doPreVisitList() {
-        outputSliceInfos[getCurColumnIdx()] = sliceInfoStack.getLast();
-        dataLen[getCurColumnIdx()] = 0;
+        int curColumnIdx = getCurColumnIdx();
+        outputSliceInfos[curColumnIdx] = sliceInfoStack.getLast();
+        dataLen[curColumnIdx] = 0;
         sliceInfoStack.addLast(deserializeOffset());
     }
 
@@ -86,7 +88,7 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
                 .asIntBuffer();
 
         IntBuffer outputOffsetBuffer = getOutputBuffer()
-                .asByteBuffer(getCurrentDestStartRows() * Integer.BYTES, bufferSize)
+                .asByteBuffer(columnOffsetInfo.getOffset() + getCurrentDestStartRows() * Integer.BYTES, bufferSize)
                 .order(ByteOrder.LITTLE_ENDIAN)
                 .asIntBuffer();
 
