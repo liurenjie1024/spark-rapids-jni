@@ -43,8 +43,8 @@ class SlicedDataBufferMerger extends BaseSlicedBufferMerger {
 
         int curColIdx = getCurColumnIdx();
         System.out.println("Dest data offset:" + (columnOffsetInfo.getData() + outputDataOffset[curColIdx]) +
-                "Source data offset:" + getOffset() +
-                "Source data len:" + inputDataLen[curColIdx]);
+                " Source data offset:" + getOffset() +
+                " Source data len:" + inputDataLen[curColIdx]);
         getOutputBuffer().copyFromHostBuffer(columnOffsetInfo.getData() + outputDataOffset[curColIdx],
                 getKudoTable().getBuffer(), getOffset(), inputDataLen[curColIdx]);
 
