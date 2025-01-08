@@ -129,9 +129,7 @@ abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void>
                     }
 
                     HostMergeResultCalc calc = new HostMergeResultCalc(mergedInfo.getColumnOffsets(), nullCounts, rowCounts, buffer);
-                    KudoHostMergeResult result = Visitors.visitSchema(schema, calc);
-                    System.out.println("Merged result: " + result);
-                    return result;
+                    return Visitors.visitSchema(schema, calc);
                 });
     }
 }
