@@ -72,7 +72,8 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
     private SliceInfo deserializeOffset() {
         SliceInfo sliceInfo = sliceInfoStack.getLast();
         ColumnOffsetInfo columnOffsetInfo = getCurrentColumnOffsetInfo();
-        if (columnOffsetInfo.getOffset() == ColumnOffsetInfo.INVALID_OFFSET) {
+        if (columnOffsetInfo.getOffset() == ColumnOffsetInfo.INVALID_OFFSET ||
+                columnOffsetInfo.getOffsetBufferLen() == 0) {
             return sliceInfo;
         }
 
@@ -91,6 +92,11 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
                 .asByteBuffer(columnOffsetInfo.getOffset() + getCurrentDestStartRows() * Integer.BYTES, bufferSize)
                 .order(ByteOrder.LITTLE_ENDIAN)
                 .asIntBuffer();
+
+        System.out.println("Slice offset deserialize, source offset: " + getOffset()
+                + ", buffer size: " + bufferSize
+                + ", dest offset: " + columnOffsetInfo.getOffset()
+                + ", dest start row count: " + getCurrentDestStartRows());
 
         int startOffset = inputOffsetBuffer.get(0);
         int accumulatedOffset = outputOffsetBuffer.get(0);

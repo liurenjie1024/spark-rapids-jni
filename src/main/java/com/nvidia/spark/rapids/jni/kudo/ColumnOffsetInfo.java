@@ -82,6 +82,14 @@ class ColumnOffsetInfo {
   }
 
   /**
+   * Get length of offset buffer.
+   * @return The return value is undetermined if the offset buffer is not preset, other actual length.
+   */
+  long getOffsetBufferLen() {
+    return offsetBufferLen;
+  }
+
+  /**
    * Get a view of the offset buffer from underlying buffer.
    * @param baseAddress the base address of underlying buffer.
    * @return null if the offset buffer is not present, otherwise a view of the buffer.
