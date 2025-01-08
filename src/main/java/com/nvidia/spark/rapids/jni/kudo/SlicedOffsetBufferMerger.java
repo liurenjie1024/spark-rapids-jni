@@ -99,7 +99,12 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
                 + ", dest start row count: " + getCurrentDestStartRows());
 
         int startOffset = inputOffsetBuffer.get(0);
-        int accumulatedOffset = outputOffsetBuffer.get(0);
+        int accumulatedOffset;
+        if (getCurrentDestStartRows() == 0) {
+            accumulatedOffset = 0;
+        } else {
+            accumulatedOffset = outputOffsetBuffer.get(0);
+        }
         for (int i = 0; i <= sliceInfo.getRowCount(); i++) {
             outputOffsetBuffer.put(i, inputOffsetBuffer.get(i) - startOffset + accumulatedOffset);
         }
