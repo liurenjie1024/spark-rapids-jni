@@ -68,7 +68,7 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
     }
 
     private SliceInfo deserializeOffset() {
-        SliceInfo sliceInfo = sliceInfoStack.peekLast();
+        SliceInfo sliceInfo = sliceInfoStack.getLast();
         ColumnOffsetInfo columnOffsetInfo = getCurrentColumnOffsetInfo();
         if (columnOffsetInfo.getOffset() == ColumnOffsetInfo.INVALID_OFFSET) {
             return sliceInfo;
@@ -98,6 +98,6 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
 
         increaseOffset(bufferSize);
 
-        return new SliceInfo(startOffset, inputOffsetBuffer.get(sliceInfo.getRowCount()));
+        return new SliceInfo(startOffset, inputOffsetBuffer.get(sliceInfo.getRowCount()) - startOffset);
     }
 }
