@@ -10,6 +10,9 @@ import com.nvidia.spark.rapids.jni.schema.Visitors;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.nvidia.spark.rapids.jni.kudo.KudoSerializer.padForHostAlignment;
+import static java.lang.Math.toIntExact;
+
 abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void> {
     private final KudoTable kudoTable;
     private final int[] destStartRows;
@@ -53,7 +56,7 @@ abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void>
     }
 
     protected void increaseOffset(int delta) {
-        offset += delta;
+        offset += toIntExact(padForHostAlignment(delta));
     }
 
     @Override
