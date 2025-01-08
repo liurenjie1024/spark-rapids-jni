@@ -20,17 +20,14 @@ class SlicedDataBufferMerger extends BaseSlicedBufferMerger {
 
     @Override
     void doVisitStruct() {
-        deserializeDataBuffer();
     }
 
     @Override
     void doPreVisitList() {
-        deserializeDataBuffer();
     }
 
     @Override
     void doVisitList() {
-
     }
 
     @Override
