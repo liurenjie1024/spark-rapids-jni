@@ -54,6 +54,14 @@ class ColumnOffsetInfo {
   }
 
   /**
+   * Gen length of validity buffer offset.
+   * @return The return value is undetermined if the validity buffer is not present, otherwise actual length.
+   */
+  long getValidityBufferLen() {
+    return validityBufferLen;
+  }
+
+  /**
    * Get a view of the validity buffer from underlying buffer.
    * @param baseAddress the base address of underlying buffer.
    * @return null if the validity buffer is not present, otherwise a view of the buffer.

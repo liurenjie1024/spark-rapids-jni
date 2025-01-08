@@ -4,6 +4,7 @@ import ai.rapids.cudf.BufferType;
 import ai.rapids.cudf.HostMemoryBuffer;
 import ai.rapids.cudf.Schema;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import static java.lang.Math.min;
@@ -65,7 +66,9 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
         SliceInfo sliceInfo = sliceInfoList[curColIdx];
 
         if (getKudoTable().getHeader().hasValidityBuffer(curColIdx)) {
-            nullCount[curColIdx] += copyValidityBuffer(getOutputBuffer(), columnOffsetInfo.getValidity(),
+            nullCount[curColIdx] += copyValidityBuffer(getOutputBuffer()
+                            .asByteBuffer(columnOffsetInfo.getValidity(),
+                            toIntExact(columnOffsetInfo.getValidityBufferLen())),
                     getCurrentDestStartRows(), getKudoTable().getBuffer(), getOffset(), sliceInfo);
             increaseOffset(sliceInfo.getValidityBufferInfo().getBufferLength());
         } else {
@@ -79,9 +82,8 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
      *
      * @return Number of nulls in the validity buffer.
      */
-    private static int copyValidityBuffer(HostMemoryBuffer dest,
-                                          long destStartOffset,
-                                          int startBit,
+    private static int copyValidityBuffer(ByteBuffer destBuffer,
+                                          int destStartRow,
                                           HostMemoryBuffer src,
                                           int srcOffset,
                                           SliceInfo sliceInfo) {
@@ -90,8 +92,8 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
         int curIdx = 0;
         int curSrcByteIdx = srcOffset;
         int curSrcBitIdx = sliceInfo.getValidityBufferInfo().getBeginBit();
-        int curDestByteIdx = toIntExact(destStartOffset + startBit / 8);
-        int curDestBitIdx = startBit % 8;
+        int curDestByteIdx = destStartRow / 8;
+        int curDestBitIdx = destStartRow % 8;
 
         while (curIdx < totalRowCount) {
             int leftRowCount = totalRowCount - curIdx;
@@ -112,12 +114,12 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
                 nullCount += (appendCount - NUMBER_OF_ONES[srcByte & 0xFF]);
 
                 // Sets the bits in destination buffer starting from curDestBitIdx to 0
-                byte destByte = dest.getByte(curDestByteIdx);
+                byte destByte = destBuffer.get(curDestByteIdx);
                 destByte = (byte) (destByte & ((1 << curDestBitIdx) - 1) & 0xFF);
 
                 // Update destination byte with the bits from source byte
                 destByte = (byte) ((destByte | (srcByte << curDestBitIdx)) & 0xFF);
-                dest.setByte(curDestByteIdx, destByte);
+                destBuffer.put(curDestByteIdx, destByte);
 
                 curSrcBitIdx += appendCount;
                 if (curSrcBitIdx == 8) {
@@ -138,12 +140,12 @@ class SlicedValidityBufferMerger extends BaseSlicedBufferMerger {
                 nullCount += (appendCount - NUMBER_OF_ONES[srcByte & 0xFF]);
 
                 // Sets the bits in destination buffer starting from curDestBitIdx to 0
-                byte destByte = dest.getByte(curDestByteIdx);
+                byte destByte = destBuffer.get(curDestByteIdx);
                 destByte = (byte) (destByte & ((1 << curDestBitIdx) - 1));
 
                 // Update destination byte with the bits from source byte
                 destByte = (byte) (destByte | (srcByte << curDestBitIdx));
-                dest.setByte(curDestByteIdx, destByte);
+                destBuffer.put(curDestByteIdx, destByte);
 
                 // Update the source byte index and bit index
                 curSrcByteIdx += 1;
