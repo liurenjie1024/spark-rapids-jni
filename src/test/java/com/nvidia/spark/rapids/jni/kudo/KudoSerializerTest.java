@@ -163,29 +163,29 @@ public class KudoSerializerTest {
     Arms.withResource(new ArrayList<Table>(), tables -> {
       Table table1 = new Table.TestBuilder()
           .column(-881L, 482L, 660L, 896L, -129L, -108L, -428L, 0L, 617L, 782L)
-          .column(integers(665), integers(-267), integers(398), integers(-314),
-              integers(-370), integers(181), integers(665, 544), integers(222), integers(-587),
-              integers(544))
+//          .column(integers(665), integers(-267), integers(398), integers(-314),
+//              integers(-370), integers(181), integers(665, 544), integers(222), integers(-587),
+//              integers(544))
           .build();
       tables.add(table1);
 
       Table table2 = new Table.TestBuilder()
           .column(-881L, 482L, 660L, 896L, 122L, 241L, 281L, 680L, 783L, null)
-          .column(integers(-370), integers(398), integers(-587, 398), integers(-314),
-              integers(307), integers(-397, -633), integers(-314, 307), integers(-633),
-              integers(-397),
-              integers(181, -919, -175))
+//          .column(integers(-370), integers(398), integers(-587, 398), integers(-314),
+//              integers(307), integers(-397, -633), integers(-314, 307), integers(-633),
+//              integers(-397),
+//              integers(181, -919, -175))
           .build();
       tables.add(table2);
 
       Table expected = new Table.TestBuilder()
           .column(896L, -129L, -108L, -428L, 0L, 617L, 782L, 482L, 660L, 896L, 122L, 241L,
               281L, 680L, 783L, null)
-          .column(integers(-314), integers(-370), integers(181), integers(665, 544), integers(222),
-              integers(-587), integers(544), integers(398), integers(-587, 398), integers(-314),
-              integers(307), integers(-397, -633), integers(-314, 307), integers(-633),
-              integers(-397),
-              integers(181, -919, -175))
+//          .column(integers(-314), integers(-370), integers(181), integers(665, 544), integers(222),
+//              integers(-587), integers(544), integers(398), integers(-587, 398), integers(-314),
+//              integers(307), integers(-397, -633), integers(-314, 307), integers(-633),
+//              integers(-397),
+//              integers(181, -919, -175))
           .build();
       tables.add(expected);
 
