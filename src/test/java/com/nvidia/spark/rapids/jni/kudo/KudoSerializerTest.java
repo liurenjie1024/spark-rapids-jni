@@ -25,14 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import ai.rapids.cudf.AssertUtils;
-import ai.rapids.cudf.ColumnVector;
-import ai.rapids.cudf.ColumnView;
-import ai.rapids.cudf.DType;
-import ai.rapids.cudf.HostColumnVector;
-import ai.rapids.cudf.HostMemoryBuffer;
-import ai.rapids.cudf.Schema;
-import ai.rapids.cudf.Table;
+import ai.rapids.cudf.*;
 import com.nvidia.spark.rapids.jni.Arms;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -456,6 +449,12 @@ public class KudoSerializerTest {
 
           try (Table merged = serializer.mergeToTable(kudoTables).getLeft()) {
             assertEquals(expected.getRowCount(), merged.getRowCount());
+
+            TableDebug.builder()
+                    .withOutput(TableDebug.Output.STDOUT)
+                    .build()
+                    .debug("Merged table", merged);
+
             AssertUtils.assertTablesAreEqual(expected, merged);
           }
         } catch (Exception e) {
