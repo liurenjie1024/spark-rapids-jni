@@ -112,25 +112,20 @@ abstract class BaseSlicedBufferMerger implements SchemaVisitor<Void, Void, Void>
                         SlicedOffsetBufferMerger offsetBufferMerger = new SlicedOffsetBufferMerger(kudoTable,
                                 rowCounts, mergedInfo.getColumnOffsets(), buffer);
                         Visitors.visitSchema(schema, offsetBufferMerger);
-                        System.out.println("Data len: " + Arrays.toString(offsetBufferMerger.getDataLen()));
-                        System.out.println("Slice info: " + Arrays.toString(offsetBufferMerger.getOutputSliceInfos()));
 
 
                         SlicedValidityBufferMerger validityBufferMerger = new SlicedValidityBufferMerger(kudoTable,
                                 rowCounts, mergedInfo.getColumnOffsets(), buffer,
                                 offsetBufferMerger.getOutputSliceInfos(), nullCounts);
                         Visitors.visitSchema(schema, validityBufferMerger);
-                        System.out.println("Null count: " + Arrays.toString(nullCounts));
 
                         SlicedDataBufferMerger dataBufferMerger = new SlicedDataBufferMerger(kudoTable, rowCounts,
                                 mergedInfo.getColumnOffsets(), buffer, offsetBufferMerger.getDataLen(), destDataOffsets);
                         Visitors.visitSchema(schema, dataBufferMerger);
-                        System.out.println("Dest data offsets: " + Arrays.toString(destDataOffsets));
 
                         for (int i = 0; i < colNum; i++) {
                             rowCounts[i] += offsetBufferMerger.getOutputSliceInfos()[i].getRowCount();
                         }
-                        System.out.println("row counts:" + Arrays.toString(rowCounts));
                     }
 
                     HostMergeResultCalc calc = new HostMergeResultCalc(mergedInfo.getColumnOffsets(), nullCounts, rowCounts, buffer);

@@ -93,11 +93,6 @@ class SlicedOffsetBufferMerger extends BaseSlicedBufferMerger {
                 .order(ByteOrder.LITTLE_ENDIAN)
                 .asIntBuffer();
 
-        System.out.println("Slice offset deserialize, source offset: " + getOffset()
-                + ", buffer size: " + bufferSize
-                + ", dest offset: " + columnOffsetInfo.getOffset()
-                + ", dest start row count: " + getCurrentDestStartRows());
-
         int startOffset = inputOffsetBuffer.get(0);
         int accumulatedOffset;
         if (getCurrentDestStartRows() == 0) {
