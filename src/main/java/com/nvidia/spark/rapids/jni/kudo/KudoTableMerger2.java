@@ -92,6 +92,8 @@ class KudoTableMerger2 implements SchemaVisitor2 {
     sliceInfos = new Deque[kudoTables.size()];
     for (int i = 0; i < sliceInfos.length; i++) {
       sliceInfos[i] = new LinkedList<>();
+      KudoTableHeader header = kudoTables.get(i).getHeader();
+      sliceInfos[i].addLast(new SliceInfo(header.getOffset(), header.getNumRows()));
     }
 
     sliceInfoBuf = new SliceInfo[kudoTables.size()];
