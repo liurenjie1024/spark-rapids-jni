@@ -46,7 +46,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
     private int curColIdx = 0;
 
 
-    public MergedInfoCalc2(List<KudoTable> tables) {
+    MergedInfoCalc2(List<KudoTable> tables) {
         this.kudoTables = tables;
         this.totalDataLen = 0;
         int columnCount = tables.get(0).getHeader().getNumColumns();
@@ -84,6 +84,9 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
         return "MergedInfoCalc2{" +
                 "totalDataLen=" + totalDataLen +
                 ", columnOffsets=" + columnOffsets +
+                ", hasNull=" + Arrays.toString(hasNull) +
+                ", rowCount=" + Arrays.toString(rowCount) +
+                ", dataLen=" + Arrays.toString(dataLen) +
                 '}';
     }
 
