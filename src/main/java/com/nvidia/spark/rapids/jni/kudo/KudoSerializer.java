@@ -369,13 +369,15 @@ public class KudoSerializer {
   public Pair<KudoHostMergeResult, MergeMetrics> mergeOnHost(List<KudoTable> kudoTables) {
     MergeMetrics.Builder metricsBuilder = MergeMetrics.builder();
 
-    MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
-        metricsBuilder::calcHeaderTime);
     KudoHostMergeResult result;
     if (useNewConcat) {
-      result = withTime(() -> BaseSlicedBufferMerger.merge(schema, mergedInfoCalc),
+      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
+              metricsBuilder::calcHeaderTime);
+      result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
               metricsBuilder::mergeIntoHostBufferTime);
     } else {
+      MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
+              metricsBuilder::calcHeaderTime);
       result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
               metricsBuilder::mergeIntoHostBufferTime);
     }
