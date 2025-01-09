@@ -78,7 +78,7 @@ public class Visitors {
                 visitor.visitList(schema);
                 break;
             default:
-                visitor.visitTopSchema(schema);
+                visitor.visit(schema);
                 break;
         }
     }
