@@ -62,7 +62,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             Visitors.visitSchema(schema, new SingleTableVisitor(kudoTable));
         }
 
-
+        Visitors.visitSchema(schema, this);
     }
 
     public long getTotalDataLen() {
