@@ -57,12 +57,10 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
         this.columnOffsets = new ArrayList<>(columnCount);
     }
 
-    private void doCalc(Schema schema, List<KudoTable> tables) {
-        for (KudoTable kudoTable : tables) {
+    private void doCalc(Schema schema) {
+        for (KudoTable kudoTable : kudoTables) {
             Visitors.visitSchema(schema, new SingleTableVisitor(kudoTable));
         }
-
-        Visitors.visitSchema(schema, this);
     }
 
     public long getTotalDataLen() {
@@ -91,8 +89,8 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
 
     static MergedInfoCalc2 calc(Schema schema, List<KudoTable> tables) {
         MergedInfoCalc2 calc = new MergedInfoCalc2(tables);
-
-        calc.doCalc(schema, tables);
+        calc.doCalc(schema);
+        Visitors.visitSchema(schema, calc);
         return calc;
     }
 
