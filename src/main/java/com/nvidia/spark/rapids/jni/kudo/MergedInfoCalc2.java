@@ -52,6 +52,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
         int columnCount = tables.get(0).getHeader().getNumColumns();
         this.hasNull = new boolean[columnCount];
         initHasNull();
+        System.out.println("columnCount: " + columnCount);
         this.rowCount = new int[columnCount];
         this.dataLen = new int[columnCount];
         this.columnOffsets = new ArrayList<>(columnCount);
