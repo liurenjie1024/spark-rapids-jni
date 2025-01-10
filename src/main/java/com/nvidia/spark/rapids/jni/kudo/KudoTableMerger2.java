@@ -342,6 +342,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
       for (int tableIdx = 0; tableIdx < kudoTables.size(); tableIdx += 1) {
         SliceInfo sliceInfo = sliceInfoOf(tableIdx);
+        sliceInfoBuf[tableIdx] = null;
         if (sliceInfo.getRowCount() > 0) {
           int rowCnt = sliceInfo.getRowCount();
 
@@ -385,7 +386,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
           // String type
           long start = 0;
           for (int tableIdx = 0; tableIdx < kudoTables.size(); tableIdx += 1) {
-            int thisDataLen = sliceInfoBuf[curColIdx].getRowCount();
+            int thisDataLen = sliceInfoBuf[tableIdx].getRowCount();
             copyDataBuffer(buf, start, tableIdx, thisDataLen);
             start += thisDataLen;
           }
