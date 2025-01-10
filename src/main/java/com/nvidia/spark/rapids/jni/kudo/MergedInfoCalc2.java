@@ -181,9 +181,11 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
 
                 dataOffset = totalDataLen;
                 dataBufferLen = padFor64byteAlignment(dataLen[curColIdx]);
+                totalDataLen += dataBufferLen;
             } else {
                 dataOffset = totalDataLen;
                 dataBufferLen = padFor64byteAlignment(rowCount[curColIdx] * primitiveType.getType().getSizeInBytes());
+                totalDataLen += dataBufferLen;
             }
         }
 

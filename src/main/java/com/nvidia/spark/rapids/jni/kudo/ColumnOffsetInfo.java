@@ -127,11 +127,13 @@ class ColumnOffsetInfo {
 
   @Override
   public String toString() {
-    return "ColumnOffsets{" +
+    return "ColumnOffsetInfo{" +
         "validity=" + validity +
+        ", validityBufferLen=" + validityBufferLen +
         ", offset=" + offset +
+        ", offsetBufferLen=" + offsetBufferLen +
         ", data=" + data +
-        ", dataLen=" + dataBufferLen +
+        ", dataBufferLen=" + dataBufferLen +
         '}';
   }
 }
