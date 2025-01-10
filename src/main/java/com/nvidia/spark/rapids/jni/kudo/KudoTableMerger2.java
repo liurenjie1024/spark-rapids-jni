@@ -347,15 +347,19 @@ class KudoTableMerger2 implements SchemaVisitor2 {
           int firstOffset = offsetOf(tableIdx, 0);
           int lastOffset = offsetOf(tableIdx, rowCnt);
 
-          System.out.println("Cur col idx: " + curColIdx
-              + ", table idx: " + tableIdx
-              + ", slice info: " + sliceInfo
-              + ", offest offset: " + offsetOffsets[tableIdx]
-              + ", first offset: " + firstOffset
-              + ", last offset: " + lastOffset);
+//          System.out.println("Cur col idx: " + curColIdx
+//              + ", table idx: " + tableIdx
+//              + ", slice info: " + sliceInfo
+//              + ", offest offset: " + offsetOffsets[tableIdx]
+//              + ", first offset: " + firstOffset
+//              + ", last offset: " + lastOffset);
 
           for (int i = 0; i < rowCnt; i += 1) {
-            offsetBuf.setInt(offset, offsetOf(tableIdx, i) - firstOffset + accumulatedDataLen);
+            int offsetValue = offsetOf(tableIdx, i) - firstOffset + accumulatedDataLen;
+            offsetBuf.setInt(offset, offsetValue);
+            System.out.println("Cur col idx: " + curColIdx
+                + ", offset offset: " + offset
+                + ", offset value: " + offsetValue);
             offset += Integer.BYTES;
           }
 
@@ -365,6 +369,9 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       }
 
       offsetBuf.setInt(offset, accumulatedDataLen);
+      System.out.println("Cur col idx: " + curColIdx
+          + ", offset offset: " + offset
+          + ", offset value: " + accumulatedDataLen);
     }
   }
 
