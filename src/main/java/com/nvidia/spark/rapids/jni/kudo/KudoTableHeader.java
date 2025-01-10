@@ -131,24 +131,11 @@ public final class KudoTableHeader {
     public int startOffsetOf(BufferType bufferType) {
         switch (bufferType) {
             case VALIDITY:
-                if (validityBufferLen > 0) {
-                    return 0;
-                } else {
-                    return toIntExact(ColumnOffsetInfo.INVALID_OFFSET);
-                }
+                return 0;
             case OFFSET:
-                if (offsetBufferLen > 0) {
-                    return validityBufferLen;
-                } else {
-                    return toIntExact(ColumnOffsetInfo.INVALID_OFFSET);
-                }
+                return validityBufferLen;
             case DATA:
-                long dataLen = totalDataLen - offsetBufferLen - validityBufferLen;
-                if (dataLen > 0) {
-                    return validityBufferLen + offsetBufferLen;
-                } else {
-                    return toIntExact(ColumnOffsetInfo.INVALID_OFFSET);
-                }
+                return validityBufferLen + offsetBufferLen;
             default:
                 throw new IllegalArgumentException("Unsupported buffer type: " + bufferType);
         }
