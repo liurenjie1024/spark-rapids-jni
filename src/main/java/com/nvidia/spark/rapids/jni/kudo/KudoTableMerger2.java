@@ -112,8 +112,11 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
 
     for (int i=0; i<kudoTables.size(); i++) {
+      KudoTableHeader header = kudoTables.get(i).getHeader();
       SliceInfo sliceInfo = sliceInfoOf(i);
-      validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
+      if (header.hasValidityBuffer(curColIdx)) {
+        validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
+      }
     }
     curColIdx++;
   }
@@ -129,9 +132,14 @@ class KudoTableMerger2 implements SchemaVisitor2 {
         offsetInfo, nullCount, totalRowCount));
 
     for (int i=0; i<kudoTables.size(); i++) {
+      KudoTableHeader header = kudoTables.get(i).getHeader();
       SliceInfo sliceInfo = sliceInfoOf(i);
-      validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
-      offsetOffsets[i] += padForHostAlignment(sliceInfo.getRowCount() * Integer.BYTES);
+      if (header.hasValidityBuffer(curColIdx)) {
+        validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
+      }
+      if (sliceInfo.getRowCount() > 0) {
+        offsetOffsets[i] += padForHostAlignment(sliceInfo.getRowCount() * Integer.BYTES);
+      }
       sliceInfos[i].addLast(sliceInfoBuf[i]);
     }
     curColIdx++;
@@ -161,16 +169,26 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
     if (primitiveType.getType().hasOffsets()) {
       for (int i=0; i<kudoTables.size(); i++) {
+        KudoTableHeader header = kudoTables.get(i).getHeader();
         SliceInfo sliceInfo = sliceInfoOf(i);
-        validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
-        offsetOffsets[i] += padForHostAlignment(sliceInfo.getRowCount() * Integer.BYTES);
-        dataOffsets[i] += padForHostAlignment(sliceInfoBuf[i].getRowCount());
+        if (header.hasValidityBuffer(curColIdx)) {
+          validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
+        }
+        if (sliceInfo.getRowCount() > 0) {
+          offsetOffsets[i] += padForHostAlignment(sliceInfo.getRowCount() * Integer.BYTES);
+          dataOffsets[i] += padForHostAlignment(sliceInfoBuf[i].getRowCount());
+        }
       }
     } else {
       for (int i=0; i<kudoTables.size(); i++) {
+        KudoTableHeader header = kudoTables.get(i).getHeader();
         SliceInfo sliceInfo = sliceInfoOf(i);
-        validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
-        dataOffsets[i] += padForHostAlignment(primitiveType.getType().getSizeInBytes() * sliceInfo.getRowCount());
+        if (header.hasValidityBuffer(curColIdx)) {
+          validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
+        }
+        if (sliceInfo.getRowCount() > 0) {
+          dataOffsets[i] += padForHostAlignment(primitiveType.getType().getSizeInBytes() * sliceInfo.getRowCount());
+        }
       }
     }
     curColIdx++;
