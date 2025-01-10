@@ -350,6 +350,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
           System.out.println("Cur col idx: " + curColIdx
               + ", table idx: " + tableIdx
               + ", slice info: " + sliceInfo
+              + ", offest offset: " + offsetOffsets[tableIdx]
               + ", first offset: " + firstOffset
               + ", last offset: " + lastOffset);
 
