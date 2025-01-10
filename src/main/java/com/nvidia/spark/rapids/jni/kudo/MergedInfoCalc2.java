@@ -223,12 +223,17 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             SliceInfo sliceInfo = sliceInfos.getLast();
             rowCount[curColIdx] += sliceInfo.getRowCount();
 
-            int startOffset = table.getBuffer().getInt(bufferOffset);
-            int endOffset = table.getBuffer().getInt(bufferOffset + sliceInfo.getRowCount() * Integer.BYTES);
-            SliceInfo nextSliceInfo = new SliceInfo(startOffset, endOffset - startOffset);
-            sliceInfos.addLast(nextSliceInfo);
+            if (sliceInfo.getRowCount() > 0) {
+                int startOffset = table.getBuffer().getInt(bufferOffset);
+                int endOffset = table.getBuffer().getInt(bufferOffset + sliceInfo.getRowCount() * Integer.BYTES);
+                SliceInfo nextSliceInfo = new SliceInfo(startOffset, endOffset - startOffset);
+                sliceInfos.addLast(nextSliceInfo);
 
-            bufferOffset += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
+                bufferOffset += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
+            } else {
+                sliceInfos.addLast(new SliceInfo(0, 0));
+            }
+
             curColIdx++;
         }
 
@@ -243,10 +248,14 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             rowCount[curColIdx] += sliceInfo.getRowCount();
             if (primitiveType.getType().hasOffsets()) {
                 // string type
-                int startOffset = table.getBuffer().getInt(bufferOffset);
-                int endOffset = table.getBuffer().getInt(bufferOffset + sliceInfo.getRowCount() * Integer.BYTES);
-                dataLen[curColIdx] += (endOffset - startOffset);
-                bufferOffset += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
+                if (sliceInfo.getRowCount() > 0) {
+                    int startOffset = table.getBuffer().getInt(bufferOffset);
+                    int endOffset = table.getBuffer().getInt(bufferOffset + sliceInfo.getRowCount() * Integer.BYTES);
+                    dataLen[curColIdx] += (endOffset - startOffset);
+                    bufferOffset += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
+                } else {
+                    dataLen[curColIdx] = 0;
+                }
             }
             // We don't need to update data len for non string primitive type
             curColIdx++;
