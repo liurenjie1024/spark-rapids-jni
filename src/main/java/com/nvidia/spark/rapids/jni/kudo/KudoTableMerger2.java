@@ -213,11 +213,6 @@ class KudoTableMerger2 implements SchemaVisitor2 {
             appendAllValid(validityBuffer, startRow, sliceInfo.getRowCount());
           }
 
-          System.out.println("Cur col idx: " + curColIdx
-                  + ", table idx: " + tableIdx
-                  + ", slice info: " + sliceInfo
-                  + ", validity offset: " + validityOffset
-                  + ", null count total: " + nullCountTotal);
 
           startRow += sliceInfo.getRowCount();
         }
@@ -334,6 +329,10 @@ class KudoTableMerger2 implements SchemaVisitor2 {
   }
 
   private void deserializeOffsetBuffer(ColumnOffsetInfo curColOffset) {
+    for (int i=0; i<kudoTables.size(); i++) {
+      sliceInfoBuf[i] = null;
+    }
+
     if (curColOffset.getOffset() != INVALID_OFFSET) {
       long offset = curColOffset.getOffset();
       HostMemoryBuffer offsetBuf = buffer;
@@ -342,12 +341,17 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
       for (int tableIdx = 0; tableIdx < kudoTables.size(); tableIdx += 1) {
         SliceInfo sliceInfo = sliceInfoOf(tableIdx);
-        sliceInfoBuf[tableIdx] = null;
         if (sliceInfo.getRowCount() > 0) {
           int rowCnt = sliceInfo.getRowCount();
 
           int firstOffset = offsetOf(tableIdx, 0);
           int lastOffset = offsetOf(tableIdx, rowCnt);
+
+          System.out.println("Cur col idx: " + curColIdx
+              + ", table idx: " + tableIdx
+              + ", slice info: " + sliceInfo
+              + ", first offset: " + firstOffset
+              + ", last offset: " + lastOffset);
 
           for (int i = 0; i < rowCnt; i += 1) {
             offsetBuf.setInt(offset, offsetOf(tableIdx, i) - firstOffset + accumulatedDataLen);
