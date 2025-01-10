@@ -23,8 +23,6 @@ import com.nvidia.spark.rapids.jni.Arms;
 import com.nvidia.spark.rapids.jni.schema.SchemaVisitor2;
 import com.nvidia.spark.rapids.jni.schema.Visitors;
 
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.*;
 
 import static com.nvidia.spark.rapids.jni.Preconditions.ensure;
@@ -161,8 +159,6 @@ class KudoTableMerger2 implements SchemaVisitor2 {
     colViewInfoList.add(new ColumnViewInfo(primitiveType.getType(),
         offsetInfo, nullCount, totalRowCount));
 
-    for (int i=0; i<kudoTables.size(); i++) {
-    }
     if (primitiveType.getType().hasOffsets()) {
       for (int i=0; i<kudoTables.size(); i++) {
         SliceInfo sliceInfo = sliceInfoOf(i);
@@ -174,7 +170,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       for (int i=0; i<kudoTables.size(); i++) {
         SliceInfo sliceInfo = sliceInfoOf(i);
         validityOffsets[i] += padForHostAlignment(sliceInfo.getValidityBufferInfo().getBufferLength());
-        dataOffsets[i] += padForHostAlignment(primitiveType.getType().getSizeInBytes());
+        dataOffsets[i] += padForHostAlignment(primitiveType.getType().getSizeInBytes() * sliceInfo.getRowCount());
       }
     }
     curColIdx++;
@@ -183,21 +179,23 @@ class KudoTableMerger2 implements SchemaVisitor2 {
   private int deserializeValidityBuffer(ColumnOffsetInfo curColOffset) {
     if (curColOffset.getValidity() != INVALID_OFFSET) {
       long offset = curColOffset.getValidity();
-      long validityBufferSize = padFor64byteAlignment(getValidityLengthInBytes(rowCounts[curColIdx]));
+      long validityBufferSize = curColOffset.getValidityBufferLen();
       try (HostMemoryBuffer validityBuffer = buffer.slice(offset, validityBufferSize)) {
         int nullCountTotal = 0;
         int startRow = 0;
         for (int tableIdx = 0; tableIdx < kudoTables.size(); tableIdx += 1) {
           SliceInfo sliceInfo = sliceInfoOf(tableIdx);
-          long validityOffset = validifyBufferOffset(tableIdx);
+          long validityOffset = validityOffsets[tableIdx];
           if (validityOffset != INVALID_OFFSET) {
             nullCountTotal += copyValidityBuffer(validityBuffer, startRow,
-                memoryBufferOf(tableIdx), toIntExact(validityOffset),
+                kudoTables.get(tableIdx).getBuffer(),
+                 toIntExact(validityOffset),
                 sliceInfo);
           } else {
             appendAllValid(validityBuffer, startRow, sliceInfo.getRowCount());
           }
 
+          System.out.println("nullCountTotal: " + nullCountTotal + "cur col idx: " + curColIdx + " table idx: " + tableIdx);
           startRow += sliceInfo.getRowCount();
         }
         return nullCountTotal;
@@ -380,14 +378,6 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
   private SliceInfo sliceInfoOf(int tableIdx) {
     return sliceInfos[tableIdx].getLast();
-  }
-
-  private long validifyBufferOffset(int tableIdx) {
-    return validityOffsets[tableIdx];
-  }
-
-  private HostMemoryBuffer memoryBufferOf(int tableIdx) {
-    return kudoTables.get(tableIdx).getBuffer();
   }
 
   private int offsetOf(int tableIdx, long rowIdx) {
