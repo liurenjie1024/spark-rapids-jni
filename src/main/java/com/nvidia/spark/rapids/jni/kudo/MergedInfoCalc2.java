@@ -228,7 +228,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             SliceInfo nextSliceInfo = new SliceInfo(startOffset, endOffset - startOffset);
             sliceInfos.addLast(nextSliceInfo);
 
-            bufferOffset += padForHostAlignment(sliceInfo.getRowCount() * Integer.BYTES);
+            bufferOffset += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
             curColIdx++;
         }
 
@@ -246,7 +246,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
                 int startOffset = table.getBuffer().getInt(bufferOffset);
                 int endOffset = table.getBuffer().getInt(bufferOffset + sliceInfo.getRowCount() * Integer.BYTES);
                 dataLen[curColIdx] += (endOffset - startOffset);
-                bufferOffset += padForHostAlignment(sliceInfo.getRowCount() * Integer.BYTES);
+                bufferOffset += padForHostAlignment((sliceInfo.getRowCount() + 1) * Integer.BYTES);
             }
             // We don't need to update data len for non string primitive type
             curColIdx++;
