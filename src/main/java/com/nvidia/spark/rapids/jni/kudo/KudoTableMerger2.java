@@ -353,7 +353,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
             offset += Integer.BYTES;
           }
 
-          sliceInfoBuf[curColIdx] = new SliceInfo(firstOffset, lastOffset - firstOffset);
+          sliceInfoBuf[tableIdx] = new SliceInfo(firstOffset, lastOffset - firstOffset);
           accumulatedDataLen += (lastOffset - firstOffset);
         }
       }
