@@ -204,7 +204,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
         for (int tableIdx = 0; tableIdx < kudoTables.size(); tableIdx += 1) {
           SliceInfo sliceInfo = sliceInfoOf(tableIdx);
           long validityOffset = validityOffsets[tableIdx];
-          if (validityOffset != INVALID_OFFSET) {
+          if (kudoTables.get(tableIdx).getHeader().hasValidityBuffer(curColIdx)) {
             nullCountTotal += copyValidityBuffer(validityBuffer, startRow,
                 kudoTables.get(tableIdx).getBuffer(),
                  toIntExact(validityOffset),
