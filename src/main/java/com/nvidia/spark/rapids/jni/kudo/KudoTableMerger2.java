@@ -198,8 +198,9 @@ class KudoTableMerger2 implements SchemaVisitor2 {
           System.out.println("Cur col idx: " + curColIdx
                   + ", table idx: " + tableIdx
                   + ", slice info: " + sliceInfo
+                  + ", validity offset: " + validityOffset
                   + ", null count total: " + nullCountTotal);
-          
+
           startRow += sliceInfo.getRowCount();
         }
         return nullCountTotal;
