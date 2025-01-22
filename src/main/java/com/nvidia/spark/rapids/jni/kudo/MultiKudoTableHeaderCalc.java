@@ -12,7 +12,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
+public class MultiKudoTableHeaderCalc implements HostColumnsVisitor {
   private final int numFlattenedCols;
   private final byte[] bitset;
   private final List<OutputArgs> outputArgs;
@@ -58,7 +58,7 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
   }
 
   @Override
-  public Void visitStruct(HostColumnVectorCore col, List<Void> children) {
+  public void visitStruct(HostColumnVectorCore col) {
     for (int i=0; i<outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].getLast();
 
@@ -72,11 +72,10 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
       this.totalDataLen[i] += validityBufferLength;
     }
     this.setHasValidity(col.hasValidityVector());
-    return null;
   }
 
   @Override
-  public Void preVisitList(HostColumnVectorCore col) {
+  public void preVisitList(HostColumnVectorCore col) {
     for (int i=0; i<outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].getLast();
 
@@ -114,21 +113,18 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
     }
 
     this.setHasValidity(col.hasValidityVector());
-    return null;
   }
 
   @Override
-  public Void visitList(HostColumnVectorCore col, Void preVisitResult, Void childResult) {
+  public void visitList(HostColumnVectorCore col) {
     for (int i=0; i<outputArgs.size(); i++) {
       sliceInfos[i].removeLast();
     }
-
-    return null;
   }
 
 
   @Override
-  public Void visit(HostColumnVectorCore col) {
+  public void visit(HostColumnVectorCore col) {
     for (int i = 0; i < outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].peekLast();
       long validityBufferLen = dataLenOfValidityBuffer(col, parent);
@@ -151,7 +147,6 @@ public class MultiKudoTableHeaderCalc implements HostColumnsVisitor<Void> {
     }
 
     this.setHasValidity(col.hasValidityVector());
-    return null;
   }
 
   private void setHasValidity(boolean hasValidityBuffer) {
