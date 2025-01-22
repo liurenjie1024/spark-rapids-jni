@@ -43,7 +43,7 @@ import java.util.List;
  * For more details about the kudo format, please refer to {@link KudoSerializer}.
  * </p>
  */
-class MultiSlicedBufferSerializer implements HostColumnsVisitor<Void> {
+class MultiSlicedBufferSerializer implements HostColumnsVisitor {
   private final List<OutputArgs> outputArgs;
   private final BufferType bufferType;
 
@@ -69,7 +69,7 @@ class MultiSlicedBufferSerializer implements HostColumnsVisitor<Void> {
   }
 
   @Override
-  public Void visitStruct(HostColumnVectorCore col, List<Void> children) {
+  public void visitStruct(HostColumnVectorCore col) {
     for (int i = 0; i < outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].peekLast();
 
@@ -89,12 +89,10 @@ class MultiSlicedBufferSerializer implements HostColumnsVisitor<Void> {
         throw new RuntimeException(e);
       }
     }
-
-    return null;
   }
 
   @Override
-  public Void preVisitList(HostColumnVectorCore col) {
+  public void preVisitList(HostColumnVectorCore col) {
     for (int i = 0; i < outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].getLast();
 
@@ -135,19 +133,17 @@ class MultiSlicedBufferSerializer implements HostColumnsVisitor<Void> {
 
       sliceInfos[i].addLast(current);
     }
-    return null;
   }
 
   @Override
-  public Void visitList(HostColumnVectorCore col, Void preVisitResult, Void childResult) {
+  public void visitList(HostColumnVectorCore col) {
     for (int i = 0; i < outputArgs.size(); i++) {
       sliceInfos[i].removeLast();
     }
-    return null;
   }
 
   @Override
-  public Void visit(HostColumnVectorCore col) {
+  public void visit(HostColumnVectorCore col) {
     for (int i = 0; i < outputArgs.size(); i++) {
       SliceInfo parent = sliceInfos[i].getLast();
       try {
@@ -168,8 +164,6 @@ class MultiSlicedBufferSerializer implements HostColumnsVisitor<Void> {
         throw new RuntimeException(e);
       }
     }
-
-    return null;
   }
 
   private void copySlicedValidity(HostColumnVectorCore column, SliceInfo sliceInfo, int outputIdx)

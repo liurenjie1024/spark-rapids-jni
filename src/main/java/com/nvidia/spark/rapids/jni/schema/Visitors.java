@@ -105,10 +105,9 @@ public class Visitors {
      *
      * @param cols the list of host columns to visit
      * @param visitor the visitor to use
-     * @param <T> Return type when visiting intermediate nodes. See {@link HostColumnsVisitor}
      */
-    public static <T> void visitColumns(HostColumnVector[] cols,
-                                        HostColumnsVisitor<T> visitor) {
+    public static void visitColumns(HostColumnVector[] cols,
+                                        HostColumnsVisitor visitor) {
         requireNonNull(cols, "cols cannot be null");
         requireNonNull(visitor, "visitor cannot be null");
 
@@ -118,19 +117,21 @@ public class Visitors {
 
     }
 
-    private static <T> T visitColumn(HostColumnVectorCore col, HostColumnsVisitor<T> visitor) {
+    private static void visitColumn(HostColumnVectorCore col, HostColumnsVisitor visitor) {
         switch (col.getType().getTypeId()) {
             case STRUCT:
-                List<T> children = IntStream.range(0, col.getNumChildren())
-                        .mapToObj(childIdx -> visitColumn(col.getChildColumnView(childIdx), visitor))
-                        .collect(Collectors.toList());
-                return visitor.visitStruct(col, children);
+                for (int i=0; i<col.getNumChildren(); i++) {
+                    visitColumn(col.getChildColumnView(i), visitor);
+                }
+                visitor.visitStruct(col);
+                return;
             case LIST:
-                T preVisitResult = visitor.preVisitList(col);
-                T childResult = visitColumn(col.getChildColumnView(0), visitor);
-                return visitor.visitList(col, preVisitResult, childResult);
+                visitor.preVisitList(col);
+                visitColumn(col.getChildColumnView(0), visitor);
+                visitor.visitList(col);
+                return;
             default:
-                return visitor.visit(col);
+                visitor.visit(col);
         }
     }
 }
