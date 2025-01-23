@@ -280,7 +280,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
         for (int i=0; i<curArrLen; i++) {
           outputBuf[i] = (inputBuf[i] << rshift) | lastValue;
           lastValue = inputBuf[i] >>> (32 - rshift);
-          nullCount += Integer.bitCount(inputBuf[i]);
+          nullCount += 32 - Integer.bitCount(inputBuf[i]);
           leftRowCount -= 32;
         }
 
@@ -291,7 +291,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       }
 
       if (leftRowCount < 0) {
-        nullCount -= Integer.bitCount(lastOutput >>> (32 + leftRowCount));
+        nullCount -= 32 - Integer.bitCount(lastOutput >>> (32 + leftRowCount));
       }
     } else if (curSrcBitIdx > curDestBitIdx) {
       int rshift = curSrcBitIdx - curDestBitIdx;
