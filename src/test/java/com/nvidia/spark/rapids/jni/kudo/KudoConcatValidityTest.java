@@ -33,11 +33,11 @@ public class KudoConcatValidityTest {
       });
     }
 
-    private static boolean[] getValidityBuffer(HostMemoryBuffer buffer, int start, int len) {
+    private static boolean[] getValidityBuffer(HostMemoryBuffer buffer, int len) {
       boolean[] arr = new boolean[len];
       for (int i = 0; i < len; i++) {
-        int byteIdx = (start + i) / 8;
-        int bitIdx = (start + i) % 8;
+        int byteIdx = i / 8;
+        int bitIdx = i % 8;
         arr[i] = (buffer.getByte(byteIdx) & (1 << bitIdx) & 0xFF) != 0;
       }
       return arr;
@@ -62,7 +62,7 @@ public class KudoConcatValidityTest {
             arr2.appendToDest(dest);
             accuArrLen += arr2.array.length;
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
             arr2.verifyData(result);
         }
@@ -87,7 +87,7 @@ public class KudoConcatValidityTest {
             arr2.appendToDest(dest);
             accuArrLen += arr2.array.length;
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
             arr2.verifyData(result);
         }
@@ -112,7 +112,7 @@ public class KudoConcatValidityTest {
             arr2.appendToDest(dest);
             accuArrLen += arr2.array.length;
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
             arr2.verifyData(result);
         }
@@ -131,7 +131,7 @@ public class KudoConcatValidityTest {
             accuArrLen += arr1.array.length;
 
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
         }
     }
@@ -155,7 +155,7 @@ public class KudoConcatValidityTest {
             accuArrLen += arr2.array.length;
 
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
             arr2.verifyData(result);
         }
@@ -181,7 +181,33 @@ public class KudoConcatValidityTest {
             accuArrLen += arr2.array.length;
 
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
+            arr1.verifyData(result);
+            arr2.verifyData(result);
+        }
+    }
+
+    // When srcBitIdx > destBitIdx, srcIntBufLen > 1, last leftRowCount > 0
+    @Test
+    public void testConcatValidityCase7() {
+        Random random = new Random(7788);
+        int accuArrLen = 0;
+        // Be careful with startRow, they are carefully designed to cover all test cases.
+        try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
+            // When srcBitIdx == destBitIdx
+            ValidityConcatArray arr1 = new ValidityConcatArray(0, 14, random, "Array 1",
+                    accuArrLen);
+            arr1.appendToDest(dest);
+            accuArrLen += arr1.array.length;
+
+            // destBitIdx = 14
+            ValidityConcatArray arr2 = new ValidityConcatArray(17, 87, random, "Array 2",
+                    accuArrLen);
+            arr2.appendToDest(dest);
+            accuArrLen += arr2.array.length;
+
+
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
             arr2.verifyData(result);
         }
@@ -225,7 +251,7 @@ public class KudoConcatValidityTest {
             accuArrLen += arr6.array.length;
 
 
-            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            boolean[] result = getValidityBuffer(dest, accuArrLen);
             arr1.verifyData(result);
             arr2.verifyData(result);
             arr3.verifyData(result);
