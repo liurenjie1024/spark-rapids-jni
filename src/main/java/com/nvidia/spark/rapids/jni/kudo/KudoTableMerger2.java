@@ -305,59 +305,48 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       int rshift = curSrcBitIdx - curDestBitIdx;
       int rshiftMask = (1 << rshift) - 1;
       // process first element
-      int destOutputMask = (1 << curDestBitIdx) - 1;
-      int destOutput = dest.getInt(curDestIntIdx) & destOutputMask;
+      int destMask = (1 << curDestBitIdx) - 1;
+      int destOutput = dest.getInt(curDestIntIdx) & destMask;
 
       int input = src.getInt(curSrcIntIdx);
-      int lastValue = (input >>> curSrcBitIdx) << curDestBitIdx;
-      destOutput = lastValue | destOutput;
-      dest.setInt(curDestIntIdx, destOutput);
-
-      int inputMask = (1 << curSrcBitIdx) - 1;
-      int leftRem = max(0, 32 - curSrcBitIdx - leftRowCount);
-      nullCount += min(32 - curSrcBitIdx, leftRowCount) - Integer.bitCount((input & ~inputMask) << leftRem);
-      leftRowCount = max(0, leftRowCount - (32 - curSrcBitIdx));
-
-      if (leftRowCount == 0) {
+      if (srcIntBufLen == 1) {
+        int leftRem = 32 - curSrcBitIdx - leftRowCount;
+        assert leftRem >= 0;
+        int inputMask = (1 << curSrcBitIdx) - 1;
+        nullCount += leftRowCount - Integer.bitCount( (input & inputMask) << leftRem);
+        destOutput |= (input >>> curSrcBitIdx) << curDestBitIdx;
+        dest.setInt(curDestIntIdx, destOutput);
         return nullCount;
       }
 
+      nullCount -= curDestBitIdx - Integer.bitCount(destOutput);
+      int lastValue = destOutput | ((input >>> curSrcBitIdx) << curDestBitIdx);
+      int lastOutput = 0;
       curSrcIntIdx += 4;
-      int rawInput = src.getInt(curSrcIntIdx);
-      input = (rawInput & rshiftMask) << (32 - rshift);
-      destOutput |= input;
-      dest.setInt(curDestIntIdx, destOutput);
-      leftRem = max(0, rshift - leftRowCount);
-      nullCount += min(leftRowCount, rshift) - Integer.bitCount(input << leftRem);
-      leftRowCount = max(0, leftRowCount - rshift);
-      lastValue = rawInput >>> rshift;
-      if (leftRowCount == 0) {
-        return nullCount;
-      }
 
-      curSrcIntIdx += 4;
-      curDestIntIdx += 4;
       while (leftRowCount > 0) {
         int curArrLen = min(min(inputBuf.length, outputBuf.length), srcIntBufLen - (curSrcIntIdx - srcOffset) / 4);
-        if (curArrLen == 0) {
+        if (curArrLen <= 0) {
+          nullCount += leftRowCount - Integer.bitCount(lastValue & ((1 << leftRowCount) - 1));
           dest.setInt(curDestIntIdx, lastValue);
-          nullCount += leftRowCount - Integer.bitCount(lastValue & ((1 << leftRowCount) - 1)) ;
           leftRowCount = 0;
-        } else {
-          src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
-          for (int i=0; i<curArrLen; i++) {
-            input = (inputBuf[i] & rshiftMask) << (32 - rshift);
-            outputBuf[i] = input | lastValue;
-            lastValue = inputBuf[i] >>> rshift;
-
-            leftRem = max(0, 32 - leftRowCount);
-            nullCount += min(32, leftRowCount) - Integer.bitCount(outputBuf[i] << leftRem);
-            leftRowCount = max(0, leftRowCount - 32);
-          }
-          dest.setInts(curDestIntIdx, outputBuf, 0, curArrLen);
-          curSrcIntIdx += curArrLen * 4;
-          curDestIntIdx += curArrLen * 4;
+          break;
         }
+        src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
+        for (int i=0; i<curArrLen; i++) {
+          outputBuf[i] = (inputBuf[i] << (32 - rshift)) | lastValue;
+          nullCount += 32 - Integer.bitCount(outputBuf[i]);
+          leftRowCount -= 32;
+          lastValue = inputBuf[i] >>> rshiftMask;
+        }
+        lastOutput = outputBuf[curArrLen - 1];
+        dest.setInts(curDestIntIdx, outputBuf, 0, curArrLen);
+        curSrcIntIdx += curArrLen * 4;
+        curDestIntIdx += curArrLen * 4;
+      }
+
+      if (leftRowCount < 0) {
+        nullCount -= -leftRowCount - Integer.bitCount(lastOutput >>> (32 + leftRowCount));
       }
     } else {
       // Process first element
