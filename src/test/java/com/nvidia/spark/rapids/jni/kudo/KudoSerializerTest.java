@@ -757,7 +757,7 @@ public class KudoSerializerTest {
         int[] outputBuf = new int[64];
         try (HostMemoryBuffer src = fillValidityBuffer(this.startRow, array)) {
           int nullCount = KudoTableMerger2.copyValidityBuffer(dest, 0, resultStart, src, 0, new SliceInfo(this.startRow, array.length), inputBuf, outputBuf);
-          assertEquals(this.nullCount, nullCount, name + "null count not match");
+          assertEquals(this.nullCount, nullCount, name + " null count not match");
         }
       }
     }
