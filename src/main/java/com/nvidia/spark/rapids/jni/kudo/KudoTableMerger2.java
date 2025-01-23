@@ -267,7 +267,6 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
       nullCount += 32 - curDestBitIdx - Integer.bitCount(input & ~outputMask);
       leftRowCount -= (32 - curDestBitIdx);
-      System.out.println("Null count: " + nullCount + ", leftRowCount: " + leftRowCount);
       int lastValue = rawInput >>> (32 - rshift);
       int lastOutput = 0;
 
@@ -289,7 +288,6 @@ class KudoTableMerger2 implements SchemaVisitor2 {
           lastValue = inputBuf[i] >>> (32 - rshift);
           nullCount += 32 - Integer.bitCount(outputBuf[i]);
           leftRowCount -= 32;
-          System.out.println("Null count: " + nullCount + ", leftRowCount: " + leftRowCount);
         }
 
         lastOutput = outputBuf[curArrLen - 1];
@@ -300,7 +298,6 @@ class KudoTableMerger2 implements SchemaVisitor2 {
 
       if (leftRowCount < 0) {
         nullCount -= -leftRowCount - Integer.bitCount(lastOutput >>> (32 + leftRowCount));
-        System.out.println("Null count: " + nullCount + ", leftRowCount: " + leftRowCount);
       }
       assert nullCount >= 0;
     } else if (curSrcBitIdx > curDestBitIdx) {
