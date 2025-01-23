@@ -251,35 +251,47 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       int input = (rawInput >>> curSrcBitIdx) << curDestBitIdx;
       destOutput = input | destOutput;
       dest.setInt(curDestIntIdx, destOutput);
-      int leftRem = max(0, 32 - curDestBitIdx - leftRowCount);
-      nullCount += min(leftRowCount, 32 - curDestBitIdx) -  Integer.bitCount((input << leftRem));
-      leftRowCount = max(0, leftRowCount - (32 - curDestBitIdx));
-      int lastValue = (rawInput & -(1 << curSrcBitIdx)) >>> (32 - rshift);
+
+      if (srcIntBufLen == 1) {
+        int leftRem = 32 - curSrcBitIdx - leftRowCount;
+        assert leftRem >= 0;
+        nullCount += Integer.bitCount((rawInput >>> curSrcBitIdx) << (curSrcBitIdx + leftRem));
+        if ((leftRowCount + curDestBitIdx) > 32) {
+          curDestIntIdx += 4;
+          input = rawInput >>> (curSrcBitIdx + 32 - curDestBitIdx);
+          dest.setInt(curDestIntIdx, input);
+        }
+        return nullCount;
+      }
+
+      nullCount += Integer.bitCount(rawInput >>> curSrcBitIdx);
+      leftRowCount -= (32 - curDestBitIdx);
+      int lastValue = rawInput >>> (32 - rshift);
+      int lastOutput = 0;
 
       curSrcIntIdx += 4;
       curDestIntIdx += 4;
       while (leftRowCount > 0) {
         int curArrLen = min(min(inputBuf.length, outputBuf.length), srcIntBufLen - (curSrcIntIdx - srcOffset) / 4);
-        if (curArrLen == 0) {
-          dest.setInt(curDestIntIdx, lastValue);
-          nullCount += leftRowCount - Integer.bitCount(lastValue & ((1 << leftRowCount) - 1));
-          leftRowCount = 0;
-        } else {
-          src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
+        assert curArrLen > 0;
 
-          for (int i=0; i<curArrLen; i++) {
-            outputBuf[i] = (inputBuf[i] << rshift) | lastValue;
-            lastValue = inputBuf[i] >>> (32 - rshift);
-            // If left count is less than 32, we need to remove most significant bits before counting ones
-            leftRem = max(0, 32 - leftRowCount);
-            nullCount += min(32, leftRowCount) - Integer.bitCount(outputBuf[i] << leftRem);
-            leftRowCount = max(0, leftRowCount - 32);
-          }
+        src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
 
-          dest.setInts(curDestIntIdx, outputBuf, 0, curArrLen);
-          curSrcIntIdx += curArrLen * 4;
-          curDestIntIdx += curArrLen * 4;
+        for (int i=0; i<curArrLen; i++) {
+          outputBuf[i] = (inputBuf[i] << rshift) | lastValue;
+          lastValue = inputBuf[i] >>> (32 - rshift);
+          nullCount += Integer.bitCount(inputBuf[i]);
+          leftRowCount -= 32;
         }
+
+        lastOutput = outputBuf[curArrLen - 1];
+        dest.setInts(curDestIntIdx, outputBuf, 0, curArrLen);
+        curSrcIntIdx += curArrLen * 4;
+        curDestIntIdx += curArrLen * 4;
+      }
+
+      if (leftRowCount < 0) {
+        nullCount -= Integer.bitCount(lastOutput >>> (32 + leftRowCount)) ;
       }
     } else if (curSrcBitIdx > curDestBitIdx) {
       int rshift = curSrcBitIdx - curDestBitIdx;
