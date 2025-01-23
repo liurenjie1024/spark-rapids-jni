@@ -35,9 +35,7 @@ class HostMergeResultCalc implements SchemaVisitor2 {
 
     @Override
     public void visitTopSchema(Schema schema) {
-        List<ColumnViewInfo> columnViewInfoList = new ArrayList<>(columnViewInfos.length);
-        columnViewInfoList.addAll(Arrays.asList(columnViewInfos));
-        result = new KudoHostMergeResult(schema, hostMemoryBuffer, columnViewInfoList);
+        result = new KudoHostMergeResult(schema, hostMemoryBuffer, columnViewInfos);
     }
 
     @Override
