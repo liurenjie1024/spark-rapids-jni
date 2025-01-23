@@ -136,6 +136,31 @@ public class KudoConcatValidityTest {
         }
     }
 
+    // When srcBitIdx == destBitIdx, srcIntBufLen > 1
+    @Test
+    public void testConcatValidityCase5() {
+        Random random = new Random(7788);
+        int accuArrLen = 0;
+        // Be careful with startRow, they are carefully designed to cover all test cases.
+        try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
+            // When srcBitIdx == destBitIdx
+            ValidityConcatArray arr1 = new ValidityConcatArray(0, 29, random, "Array 1", accuArrLen);
+            arr1.appendToDest(dest);
+            accuArrLen += arr1.array.length;
+
+            // destBitIdx = 29
+            ValidityConcatArray arr2 = new ValidityConcatArray(29, 105, random, "Array 2",
+                    accuArrLen);
+            arr1.appendToDest(dest);
+            accuArrLen += arr2.array.length;
+
+
+            boolean[] result = getValidityBuffer(dest, 0, accuArrLen);
+            arr1.verifyData(result);
+            arr2.verifyData(result);
+        }
+    }
+
     @Test
     public void testConcatValidity() {
         Random random = new Random(7788);
