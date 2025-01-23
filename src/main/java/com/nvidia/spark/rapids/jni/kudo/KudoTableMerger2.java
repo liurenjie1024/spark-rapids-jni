@@ -278,6 +278,7 @@ class KudoTableMerger2 implements SchemaVisitor2 {
           dest.setInt(curDestIntIdx, lastValue);
           nullCount += leftRowCount - Integer.bitCount(lastValue & ((1 << leftRowCount) - 1));
           leftRowCount = 0;
+          break;
         }
 
         src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
