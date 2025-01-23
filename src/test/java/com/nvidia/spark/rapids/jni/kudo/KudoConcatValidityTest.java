@@ -10,6 +10,11 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KudoConcatValidityTest {
+    private static final int SEED = 7863832;
+
+    private static Random getRandom() {
+        return new Random(SEED);
+    }
 
     private static HostMemoryBuffer fillValidityBuffer(int startRow, boolean[] values) {
       SliceInfo sliceInfo = new SliceInfo(startRow, values.length);
@@ -46,7 +51,7 @@ public class KudoConcatValidityTest {
     //When srcBitIdx < destBitIdx, srcIntBufLen = 1
     @Test
     public void testConcatValidityCase1() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -71,7 +76,7 @@ public class KudoConcatValidityTest {
     //When srcBitIdx < destBitIdx, srcIntBufLen > 1, last leftRowCount < 0
     @Test
     public void testConcatValidityCase2() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -96,7 +101,7 @@ public class KudoConcatValidityTest {
     //When srcBitIdx < destBitIdx, srcIntBufLen > 1, last leftRowCount > 0
     @Test
     public void testConcatValidityCase3() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -121,7 +126,7 @@ public class KudoConcatValidityTest {
     // When srcBitIdx == destBitIdx, srcIntBufLen == 1
     @Test
     public void testConcatValidityCase4() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -139,7 +144,7 @@ public class KudoConcatValidityTest {
     // When srcBitIdx == destBitIdx, srcIntBufLen > 1
     @Test
     public void testConcatValidityCase5() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -164,7 +169,7 @@ public class KudoConcatValidityTest {
     // When srcBitIdx > destBitIdx, srcIntBufLen = 1
     @Test
     public void testConcatValidityCase6() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -190,7 +195,7 @@ public class KudoConcatValidityTest {
     // When srcBitIdx > destBitIdx, srcIntBufLen > 1, last leftRowCount > 0
     @Test
     public void testConcatValidityCase7() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -216,7 +221,7 @@ public class KudoConcatValidityTest {
     // When srcBitIdx > destBitIdx, srcIntBufLen > 1, last leftRowCount < 0
     @Test
     public void testConcatValidityCase8() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
@@ -241,7 +246,7 @@ public class KudoConcatValidityTest {
 
     @Test
     public void testConcatValidity() {
-        Random random = new Random(7788);
+        Random random = getRandom();
         int accuArrLen = 0;
         // Be careful with startRow, they are carefully designed to cover all test cases.
         try (HostMemoryBuffer dest = HostMemoryBuffer.allocate(4096)) {
