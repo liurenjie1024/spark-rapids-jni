@@ -366,24 +366,36 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       int destOutput = dest.getInt(curDestIntIdx);
       destOutput = (firstInput & ~mask) | (destOutput & mask);
       dest.setInt(curDestIntIdx, destOutput);
-      int leftRem = max(0, 32 - curSrcBitIdx - leftRowCount);
-      nullCount += min(32 - curSrcBitIdx, leftRowCount) - Integer.bitCount((firstInput & ~mask) << leftRem);
-      leftRowCount = max(0, leftRowCount - (32 - curSrcBitIdx));
 
+      if (srcIntBufLen == 1) {
+        int leftRem = 32 - curSrcBitIdx - leftRowCount;
+        assert leftRem >= 0;
+        nullCount += leftRowCount - Integer.bitCount((firstInput & ~mask) << leftRem);
+        return nullCount;
+      }
+
+      nullCount += 32 - curSrcBitIdx - Integer.bitCount((firstInput & ~mask));
+      leftRowCount -= 32 - curSrcBitIdx;
 
       curSrcIntIdx += 4;
       curDestIntIdx += 4;
+      int lastOutput = 0;
       while (leftRowCount > 0) {
         int curArrLen = min(min(inputBuf.length, outputBuf.length), srcIntBufLen - (curSrcIntIdx - srcOffset) / 4);
+        assert curArrLen > 0;
         src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
         for (int i=0; i<curArrLen; i++) {
-          leftRem = max(0, 32 - leftRowCount);
-          nullCount += min(32, leftRowCount) - Integer.bitCount(inputBuf[i] << leftRem);
-          leftRowCount = max(0, leftRowCount - 32);
+          nullCount += 32 - Integer.bitCount(inputBuf[i]);
+          leftRowCount -= 32;
         }
         dest.setInts(curDestIntIdx, inputBuf, 0, curArrLen);
+        lastOutput = inputBuf[curArrLen - 1];
         curSrcIntIdx += curArrLen * 4;
         curDestIntIdx += curArrLen * 4;
+      }
+
+      if (leftRowCount < 0) {
+        nullCount -= -leftRowCount - Integer.bitCount(lastOutput >>> (32 + leftRowCount));
       }
     }
 
