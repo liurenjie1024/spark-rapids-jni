@@ -274,6 +274,11 @@ class KudoTableMerger2 implements SchemaVisitor2 {
       curDestIntIdx += 4;
       while (leftRowCount > 0) {
         int curArrLen = min(min(inputBuf.length, outputBuf.length), srcIntBufLen - (curSrcIntIdx - srcOffset) / 4);
+        if (curArrLen < 0) {
+          dest.setInt(curDestIntIdx, lastValue);
+          nullCount += leftRowCount - Integer.bitCount(lastValue & ((1 << leftRowCount) - 1));
+          leftRowCount = 0;
+        }
         assert curArrLen > 0;
 
         src.getInts(inputBuf, 0, curSrcIntIdx, curArrLen);
