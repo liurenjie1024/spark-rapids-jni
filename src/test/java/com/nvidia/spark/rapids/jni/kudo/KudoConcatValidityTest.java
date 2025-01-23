@@ -226,7 +226,7 @@ public class KudoConcatValidityTest {
             arr1.appendToDest(dest);
             accuArrLen += arr1.array.length;
 
-            // destBitIdx = 14
+            // destBitIdx = 8
             ValidityConcatArray arr2 = new ValidityConcatArray(12, 85, random, "Array 2",
                     accuArrLen);
             arr2.appendToDest(dest);
