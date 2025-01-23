@@ -400,7 +400,8 @@ public class KudoSerializer {
 
     KudoHostMergeResult result;
     if (useNewConcat) {
-      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
+      KudoTable[] newTables = kudoTables.toArray(new KudoTable[0]);
+      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, newTables),
               metricsBuilder::calcHeaderTime);
 //      System.out.println("Merge info calc:" + mergedInfoCalc);
       result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
