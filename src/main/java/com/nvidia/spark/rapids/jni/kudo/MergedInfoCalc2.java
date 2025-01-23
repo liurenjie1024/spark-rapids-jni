@@ -34,7 +34,7 @@ import static com.nvidia.spark.rapids.jni.kudo.KudoSerializer.*;
  */
 class MergedInfoCalc2 implements SchemaVisitor2 {
 
-    private final List<KudoTable> kudoTables;
+    private final KudoTable[] kudoTables;
     // Total data len in gpu, which accounts for 64 byte alignment
     private long totalDataLen;
     private final boolean[] hasNull;
@@ -42,19 +42,19 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
     private final int[] dataLen;
 
     // Column offset in gpu device buffer, it has one field for each flattened column
-    private final List<ColumnOffsetInfo> columnOffsets;
+    private final ColumnOffsetInfo[] columnOffsets;
     private int curColIdx = 0;
 
 
-    MergedInfoCalc2(List<KudoTable> tables) {
+    MergedInfoCalc2(KudoTable[] tables) {
         this.kudoTables = tables;
         this.totalDataLen = 0;
-        int columnCount = tables.get(0).getHeader().getNumColumns();
+        int columnCount = tables[0].getHeader().getNumColumns();
         this.hasNull = new boolean[columnCount];
         initHasNull();
         this.rowCount = new int[columnCount];
         this.dataLen = new int[columnCount];
-        this.columnOffsets = new ArrayList<>(columnCount);
+        this.columnOffsets = new ColumnOffsetInfo[columnCount];
     }
 
     private void doCalc(Schema schema) {
@@ -67,11 +67,11 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
         return totalDataLen;
     }
 
-    List<ColumnOffsetInfo> getColumnOffsets() {
-        return Collections.unmodifiableList(columnOffsets);
+    ColumnOffsetInfo[] getColumnOffsets() {
+        return columnOffsets;
     }
 
-    public List<KudoTable> getTables() {
+    public KudoTable[] getTables() {
         return kudoTables;
     }
 
@@ -90,7 +90,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
                 '}';
     }
 
-    static MergedInfoCalc2 calc(Schema schema, List<KudoTable> tables) {
+    static MergedInfoCalc2 calc(Schema schema, KudoTable[] tables) {
         MergedInfoCalc2 calc = new MergedInfoCalc2(tables);
         calc.doCalc(schema);
         Visitors.visitSchema(schema, calc);
@@ -98,7 +98,7 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
     }
 
     private void initHasNull() {
-        int colNum = kudoTables.get(0).getHeader().getNumColumns();
+        int colNum = kudoTables[0].getHeader().getNumColumns();
         int nullBytesLen = KudoTableHeader.lengthOfHasValidityBuffer(colNum);
         byte[] nullBytes = new byte[nullBytesLen];
         for (KudoTable table : kudoTables) {
@@ -129,8 +129,8 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             totalDataLen += validityBufferLen;
         }
 
-        columnOffsets.add(new ColumnOffsetInfo(validityOffset, validityBufferLen, INVALID_OFFSET, 0,
-                INVALID_OFFSET, 0));
+        columnOffsets[curColIdx] = new ColumnOffsetInfo(validityOffset, validityBufferLen,
+            INVALID_OFFSET, 0, INVALID_OFFSET, 0);
         curColIdx++;
     }
 
@@ -154,8 +154,10 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             totalDataLen += offsetBufferLen;
         }
 
-        columnOffsets.add(new ColumnOffsetInfo(validityOffset, validityBufferLen, offsetOffset, offsetBufferLen,
-                INVALID_OFFSET, 0));
+        columnOffsets[curColIdx] = new ColumnOffsetInfo(validityOffset, validityBufferLen,
+                offsetOffset,
+                offsetBufferLen,
+                INVALID_OFFSET, 0);
         curColIdx++;
 
     }
@@ -197,8 +199,10 @@ class MergedInfoCalc2 implements SchemaVisitor2 {
             }
         }
 
-        columnOffsets.add(new ColumnOffsetInfo(validityOffset, validityBufferLen, offsetOffset, offsetBufferLen,
-                dataOffset, dataBufferLen));
+        columnOffsets[curColIdx] = new ColumnOffsetInfo(validityOffset, validityBufferLen,
+            offsetOffset,
+                offsetBufferLen,
+                dataOffset, dataBufferLen);
         curColIdx++;
     }
 
