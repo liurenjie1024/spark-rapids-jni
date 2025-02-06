@@ -508,7 +508,7 @@ public class KudoSerializerTest {
           long rows = kudoTables.stream().mapToLong(t -> t.getHeader().getNumRows()).sum();
           assertEquals(expected.getRowCount(), toIntExact(rows));
 
-          try (Table merged = serializer.mergeToTable(kudoTables).getLeft()) {
+          try (Table merged = serializer.mergeToTable(kudoTables.toArray(new KudoTable[0])).getLeft()) {
             assertEquals(expected.getRowCount(), merged.getRowCount());
 
 //            TableDebug.builder()
@@ -557,7 +557,7 @@ public class KudoSerializerTest {
           long rows = kudoTables.stream().mapToLong(t -> t.getHeader().getNumRows()).sum();
           assertEquals(expected.getRowCount(), toIntExact(rows));
 
-          try (Table merged = serializer.mergeToTable(kudoTables).getLeft()) {
+          try (Table merged = serializer.mergeToTable(kudoTables.toArray(new KudoTable[0])).getLeft()) {
             assertEquals(expected.getRowCount(), merged.getRowCount());
             AssertUtils.assertTablesAreEqual(expected, merged);
           }

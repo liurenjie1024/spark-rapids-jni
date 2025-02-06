@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.LongConsumer;
 import java.util.function.Supplier;
@@ -395,19 +396,18 @@ public class KudoSerializer {
    *                   take care of closing them after calling this method.
    * @return the merged table, and metrics during merge.
    */
-  public Pair<KudoHostMergeResult, MergeMetrics> mergeOnHost(List<KudoTable> kudoTables) {
+  public Pair<KudoHostMergeResult, MergeMetrics> mergeOnHost(KudoTable[] kudoTables) {
     MergeMetrics.Builder metricsBuilder = MergeMetrics.builder();
 
     KudoHostMergeResult result;
     if (useNewConcat) {
-      KudoTable[] newTables = kudoTables.toArray(new KudoTable[0]);
-      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, newTables),
+      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
               metricsBuilder::calcHeaderTime);
 //      System.out.println("Merge info calc:" + mergedInfoCalc);
       result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
               metricsBuilder::mergeIntoHostBufferTime);
     } else {
-      MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, kudoTables),
+      MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, Arrays.asList(kudoTables)),
               metricsBuilder::calcHeaderTime);
       result = withTime(() -> KudoTableMerger.merge(schema, mergedInfoCalc),
               metricsBuilder::mergeIntoHostBufferTime);
@@ -427,7 +427,7 @@ public class KudoSerializer {
    * @return the merged table, and metrics during merge.
    * @throws Exception if any error occurs during merge.
    */
-  public Pair<Table, MergeMetrics> mergeToTable(List<KudoTable> kudoTables) throws Exception {
+  public Pair<Table, MergeMetrics> mergeToTable(KudoTable[] kudoTables) throws Exception {
     Pair<KudoHostMergeResult, MergeMetrics> result = mergeOnHost(kudoTables);
     MergeMetrics.Builder builder = MergeMetrics.builder(result.getRight());
     try (KudoHostMergeResult children = result.getLeft()) {
