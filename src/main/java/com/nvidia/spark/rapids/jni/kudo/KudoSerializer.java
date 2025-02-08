@@ -401,11 +401,9 @@ public class KudoSerializer {
 
     KudoHostMergeResult result;
     if (useNewConcat) {
-      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
-              metricsBuilder::calcHeaderTime);
+      MergedInfoCalc2 mergedInfoCalc = MergedInfoCalc2.calc(schema, kudoTables);
 //      System.out.println("Merge info calc:" + mergedInfoCalc);
-      result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
-              metricsBuilder::mergeIntoHostBufferTime);
+      result = KudoTableMerger2.merge(schema, mergedInfoCalc);
     } else {
       MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, Arrays.asList(kudoTables)),
               metricsBuilder::calcHeaderTime);
