@@ -401,11 +401,9 @@ public class KudoSerializer {
 
     KudoHostMergeResult result;
     if (useNewConcat) {
-      MergedInfoCalc2 mergedInfoCalc = withTime(() -> MergedInfoCalc2.calc(schema, kudoTables),
-              metricsBuilder::calcHeaderTime);
+      MergedInfoCalc2 mergedInfoCalc = MergedInfoCalc2.calc(schema, kudoTables);
 //      System.out.println("Merge info calc:" + mergedInfoCalc);
-      result = withTime(() -> KudoTableMerger2.merge(schema, mergedInfoCalc),
-              metricsBuilder::mergeIntoHostBufferTime);
+      result = KudoTableMerger2.merge(schema, mergedInfoCalc);
     } else {
       MergedInfoCalc mergedInfoCalc = withTime(() -> MergedInfoCalc.calc(schema, Arrays.asList(kudoTables)),
               metricsBuilder::calcHeaderTime);
@@ -448,10 +446,7 @@ public class KudoSerializer {
 
     out.reserve(toIntExact(header.getSerializedSize() + header.getTotalDataLen()));
 
-    long currentTime = System.nanoTime();
     header.writeTo(out);
-    metrics.addCopyHeaderTime(System.nanoTime() - currentTime);
-    metrics.addWrittenBytes(header.getSerializedSize());
 
     long bytesWritten = 0;
     for (BufferType bufferType : ALL_BUFFER_TYPES) {
@@ -460,8 +455,9 @@ public class KudoSerializer {
           out, metrics, measureCopyBufferTime);
       Visitors.visitColumns(columns, serializer);
       bytesWritten += serializer.getTotalDataLen();
-      metrics.addWrittenBytes(serializer.getTotalDataLen());
     }
+
+    metrics.addWrittenBytes(bytesWritten);
 
     if (bytesWritten != header.getTotalDataLen()) {
       throw new IllegalStateException("Header total data length: " + header.getTotalDataLen() +
