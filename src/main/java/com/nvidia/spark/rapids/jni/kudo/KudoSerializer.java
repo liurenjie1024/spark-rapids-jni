@@ -446,10 +446,7 @@ public class KudoSerializer {
 
     out.reserve(toIntExact(header.getSerializedSize() + header.getTotalDataLen()));
 
-    long currentTime = System.nanoTime();
     header.writeTo(out);
-    metrics.addCopyHeaderTime(System.nanoTime() - currentTime);
-    metrics.addWrittenBytes(header.getSerializedSize());
 
     long bytesWritten = 0;
     for (BufferType bufferType : ALL_BUFFER_TYPES) {
@@ -458,8 +455,9 @@ public class KudoSerializer {
           out, metrics, measureCopyBufferTime);
       Visitors.visitColumns(columns, serializer);
       bytesWritten += serializer.getTotalDataLen();
-      metrics.addWrittenBytes(serializer.getTotalDataLen());
     }
+
+    metrics.addWrittenBytes(bytesWritten);
 
     if (bytesWritten != header.getTotalDataLen()) {
       throw new IllegalStateException("Header total data length: " + header.getTotalDataLen() +
