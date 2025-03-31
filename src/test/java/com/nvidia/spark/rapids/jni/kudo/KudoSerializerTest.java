@@ -680,14 +680,14 @@ public class KudoSerializerTest {
         if (header.size() > 4) {
           header.removeFirst();
           assertEquals(header.size(), 4);
-        }
 
-        for (int i = 0; i < 4; i++) {
-          bytes[i] = header.get(i);
-        }
+          for (int i = 0; i < 4; i++) {
+            bytes[i] = header.get(i);
+          }
 
-        if (Arrays.equals(magic, bytes)) {
-          return idx - 3;
+          if (Arrays.equals(magic, bytes)) {
+            return idx - 3;
+          }
         }
         idx += 1;
       }
