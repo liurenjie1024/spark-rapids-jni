@@ -18,6 +18,15 @@ package com.nvidia.spark.rapids.jni.kudo;
 
 import ai.rapids.cudf.*;
 import com.nvidia.spark.rapids.jni.Arms;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -626,6 +635,60 @@ public class KudoSerializerTest {
       // Cleanup
       if (tempFile != null && tempFile.exists()) {
         tempFile.delete();
+      }
+    }
+  }
+
+  @Test
+  public void testKudoDump() throws Exception {
+    int schemaLen = detectSchemaLen("/tmp/kudo_dump1.bin");
+    try (FileInputStream fin = new FileInputStream("/tmp/kudo_dump1.bin")) {
+      byte[] bytes = new byte[schemaLen];
+      int ret = fin.read(bytes);
+      if (ret != schemaLen) {
+        throw new RuntimeException("Expected schema length: " + schemaLen + ", but got: " + ret +
+            "bytes");
+      }
+
+      String schemaStr = new String(bytes, StandardCharsets.UTF_8);
+      System.out.println("Schema: \n" + schemaStr + "\n");
+
+      Optional<KudoTable> table;
+      while ((table = KudoTable.from(fin)).isPresent()) {
+        KudoTable kudoTable = table.get();
+        System.out.println("KudoTable: " + kudoTable.getHeader());
+      }
+    }
+  }
+
+  private static int detectSchemaLen(String path) throws Exception {
+    try (FileInputStream fin = new FileInputStream(path)) {
+      LinkedList<Byte> header = new LinkedList<>();
+      ByteBuffer buf = ByteBuffer.allocate(4);
+      buf.order(ByteOrder.BIG_ENDIAN);
+      buf.putInt(KudoTableHeader.SER_FORMAT_MAGIC_NUMBER);
+      byte[] magic = buf.array();
+      byte[] bytes = new byte[4];
+      int idx = 0;
+      while (true) {
+        int b = fin.read();
+        if (b == -1) {
+          throw new RuntimeException("End of file reached before reading schema length");
+        }
+        header.add((byte) b);
+        if (header.size() > 4) {
+          header.removeFirst();
+        }
+        assertEquals(header.size(), 4);
+
+        for (int i = 0; i < 4; i++) {
+          bytes[i] = header.get(i);
+        }
+
+        if (Arrays.equals(magic, bytes)) {
+          return idx - 3;
+        }
+        idx += 1;
       }
     }
   }

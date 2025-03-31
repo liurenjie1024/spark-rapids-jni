@@ -37,7 +37,7 @@ public final class KudoTableHeader {
   /**
    * Magic number "KUD0" in ASCII.
    */
-  private static final int SER_FORMAT_MAGIC_NUMBER = 0x4B554430;
+  static final int SER_FORMAT_MAGIC_NUMBER = 0x4B554430;
 
   // The offset in the original table where row starts. For example, if we want to serialize rows [3, 9) of the
   // original table, offset would be 3, and numRows would be 6.
