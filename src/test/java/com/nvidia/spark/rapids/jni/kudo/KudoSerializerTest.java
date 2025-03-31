@@ -641,8 +641,9 @@ public class KudoSerializerTest {
 
   @Test
   public void testKudoDump() throws Exception {
-    int schemaLen = detectSchemaLen("/tmp/kudo_dump1.bin");
-    try (FileInputStream fin = new FileInputStream("/tmp/kudo_dump1.bin")) {
+    String filename = "/tmp/_stage_19_task_291430939927191";
+    int schemaLen = detectSchemaLen(filename);
+    try (FileInputStream fin = new FileInputStream(filename)) {
       byte[] bytes = new byte[schemaLen];
       int ret = fin.read(bytes);
       if (ret != schemaLen) {
