@@ -232,7 +232,8 @@ class KudoTableMerger implements SimpleSchemaVisitor {
 
           if ( firstOffset < 0 || lastOffset < firstOffset) {
             System.out.println("Table idx: " + tableIdx + ", current col idx: " + curColIdx + ", "
-                + "offset buffer offset: " + offsetOffsets[tableIdx]);
+                + "offset buffer offset: " + offsetOffsets[tableIdx] + " table header: "
+                + kudoTables[tableIdx].getHeader());
             for (int x = 0; x < rowCnt; x+= 1) {
               System.out.println("Row idx: " + x + ", offset: " + offsetOf(tableIdx, x));
             }
