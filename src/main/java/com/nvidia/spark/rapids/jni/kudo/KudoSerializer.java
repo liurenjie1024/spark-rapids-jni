@@ -334,6 +334,7 @@ public class KudoSerializer {
    */
   public KudoHostMergeResult mergeOnHost(KudoTable[] kudoTables) {
     MergedInfoCalc mergedInfoCalc = MergedInfoCalc.calc(schema, kudoTables);
+    System.out.println("Merged info: " + mergedInfoCalc);
     return KudoTableMerger.merge(schema, mergedInfoCalc);
   }
 
