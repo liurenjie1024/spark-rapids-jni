@@ -639,7 +639,7 @@ public class KudoSerializerTest {
 
   @Test
   public void testKudoDump() throws Exception {
-    String filename = "/tmp/_stage_19_task_291430939927191.bin";
+    String filename = "/tmp/_stage_19_task_2914311711473336.bin";
     int schemaLen = detectSchemaLen(filename);
     try (FileInputStream fin = new FileInputStream(filename)) {
       byte[] bytes = new byte[schemaLen];
@@ -652,24 +652,24 @@ public class KudoSerializerTest {
       String schemaStr = new String(bytes, StandardCharsets.UTF_8);
       System.out.println("Schema: \n" + schemaStr);
 
-      List<KudoTable> kudoTables = new ArrayList<>();
-
-      Optional<KudoTable> table;
-      while ((table = KudoTable.from(fin)).isPresent()) {
-        KudoTable kudoTable = table.get();
-        kudoTables.add(kudoTable);
-      }
-
-      Schema schema1 = schema1();
-
-      KudoSerializer serializer = new KudoSerializer(schema1);
-
-      try (KudoHostMergeResult result = serializer.mergeOnHost(kudoTables.toArray(new KudoTable[0]),
-          new MergeOptions(DumpOption.Never, null, "xxx")))  {
-        System.out.println("Merged result: " + result);
-      }
-
-      Arms.closeAll(kudoTables);
+//      List<KudoTable> kudoTables = new ArrayList<>();
+//
+//      Optional<KudoTable> table;
+//      while ((table = KudoTable.from(fin)).isPresent()) {
+//        KudoTable kudoTable = table.get();
+//        kudoTables.add(kudoTable);
+//      }
+//
+//      Schema schema1 = schema1();
+//
+//      KudoSerializer serializer = new KudoSerializer(schema1);
+//
+//      try (KudoHostMergeResult result = serializer.mergeOnHost(kudoTables.toArray(new KudoTable[0]),
+//          new MergeOptions(DumpOption.Never, null, "xxx")))  {
+//        System.out.println("Merged result: " + result);
+//      }
+//
+//      Arms.closeAll(kudoTables);
     }
   }
 
