@@ -639,7 +639,7 @@ public class KudoSerializerTest {
 
   @Test
   public void testKudoDump() throws Exception {
-    String filename = "/tmp/_stage_19_task_2914311711473336.bin";
+    String filename = "/tmp/_stage_19_task_291430939927191.bin";
     int schemaLen = detectSchemaLen(filename);
     try (FileInputStream fin = new FileInputStream(filename)) {
       byte[] bytes = new byte[schemaLen];
