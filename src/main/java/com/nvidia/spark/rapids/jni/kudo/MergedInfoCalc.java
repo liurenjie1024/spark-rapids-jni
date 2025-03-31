@@ -82,7 +82,7 @@ class MergedInfoCalc implements SimpleSchemaVisitor {
     public String toString() {
         return "MergedInfoCalc{" +
                 "totalDataLen=" + totalDataLen +
-                ", columnOffsets=" + columnOffsets +
+                ", columnOffsets=" + Arrays.toString(columnOffsets) +
                 ", hasNull=" + Arrays.toString(hasNull) +
                 ", rowCount=" + Arrays.toString(rowCount) +
                 ", dataLen=" + Arrays.toString(dataLen) +
