@@ -679,8 +679,8 @@ public class KudoSerializerTest {
         header.add((byte) b);
         if (header.size() > 4) {
           header.removeFirst();
+          assertEquals(header.size(), 4);
         }
-        assertEquals(header.size(), 4);
 
         for (int i = 0; i < 4; i++) {
           bytes[i] = header.get(i);
