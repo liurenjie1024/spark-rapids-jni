@@ -19,12 +19,10 @@ package com.nvidia.spark.rapids.jni.kudo;
 import ai.rapids.cudf.*;
 import com.nvidia.spark.rapids.jni.Arms;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -652,14 +650,38 @@ public class KudoSerializerTest {
       }
 
       String schemaStr = new String(bytes, StandardCharsets.UTF_8);
-      System.out.println("Schema: \n" + schemaStr + "\n");
+      System.out.println("Schema: \n" + schemaStr);
+
+      List<KudoTable> kudoTables = new ArrayList<>();
 
       Optional<KudoTable> table;
       while ((table = KudoTable.from(fin)).isPresent()) {
         KudoTable kudoTable = table.get();
-        System.out.println("KudoTable: " + kudoTable.getHeader());
+        kudoTables.add(kudoTable);
       }
+
+      Schema schema1 = schema1();
+
+      KudoSerializer serializer = new KudoSerializer(schema1);
+
+      try (KudoHostMergeResult result = serializer.mergeOnHost(kudoTables.toArray(new KudoTable[0]),
+          new MergeOptions(DumpOption.Never, null, "xxx")))  {
+        System.out.println("Merged result: " + result);
+      }
+
+      Arms.closeAll(kudoTables);
     }
+  }
+
+  private static Schema schema1() {
+    Schema.Builder builder = Schema.builder();
+    builder.addColumn(DType.INT32, "a");
+    builder.addColumn(DType.INT64, "b");
+    builder.addColumn(DType.STRING, "c");
+    for (int i = 0; i < 18; i++) {
+      builder.addColumn(DType.INT64, "e" + i);
+    }
+    return builder.build();
   }
 
   private static int detectSchemaLen(String path) throws Exception {
