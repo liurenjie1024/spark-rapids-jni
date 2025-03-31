@@ -246,7 +246,8 @@ class KudoTableMerger implements SimpleSchemaVisitor {
           }
 
           if (lastOffset < firstOffset) {
-            System.out.println("Error, last offset: " + lastOffset + " < first offset: " + firstOffset + ", row count: " + rowCnt);
+            System.out.println("Error, last offset: " + lastOffset + " < first offset: "
+                + firstOffset + ", row count: " + rowCnt + ", table index: " + tableIdx);
           }
 
           sliceInfoBuf[tableIdx] = new SliceInfo(firstOffset, lastOffset - firstOffset);
