@@ -20,7 +20,10 @@ import ai.rapids.cudf.ColumnVector;
 import ai.rapids.cudf.ColumnView;
 import ai.rapids.cudf.CudfException;
 import ai.rapids.cudf.DType;
+import ai.rapids.cudf.HostColumnVector;
 import ai.rapids.cudf.HostColumnVector.*;
+import java.nio.ByteBuffer;
+import org.apache.iceberg.util.BucketUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -872,6 +875,29 @@ public class HashTest {
          ColumnView structs6 = ColumnView.makeStructView(structs5);
          ColumnView nestedResult = ColumnView.makeStructView(structs6);) {
       assertThrows(CudfException.class, () -> Hash.hiveHash(new ColumnView[]{nestedResult}));
+    }
+  }
+
+  @Test
+  void testIcebergBinaryHash() {
+    try (HostColumnVector hostCv = HostColumnVector.fromLists(
+        new ListType(true, new BasicType(true, DType.INT8)),
+         Arrays.asList((byte)0x00, (byte)0x01, (byte)0x02),
+        Arrays.asList((byte)0x02, (byte)0x04, (byte)0x06));
+         ColumnVector cv = hostCv.copyToDevice()) {
+
+      ColumnVector cudfHash = Hash.murmurHash32(0, new ColumnView[] {cv});
+
+      int[] expected = new int[(int) cv.getRowCount()];
+      for (int i = 0; i < hostCv.getRowCount(); i++) {
+        byte[] bytes = hostCv.getBytesFromList(i);
+        expected[i] = BucketUtil.hash(ByteBuffer.wrap(bytes));
+      }
+      ColumnVector icebergHash = ColumnVector.fromInts(expected);
+      assertColumnsAreEqual(icebergHash, cudfHash);
+
+      cudfHash.close();
+      icebergHash.close();
     }
   }
 }
