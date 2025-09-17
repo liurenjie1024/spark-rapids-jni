@@ -1,5 +1,6 @@
 package com.nvidia.spark.rapids.jni.kudo;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import ai.rapids.cudf.HostMemoryBuffer;
@@ -19,7 +20,7 @@ public class HostMemTest {
         mem2.copyFromHostBuffer(37, mem1, 0, 4 * 100);
         int[] ints2 = new int[100];
         mem2.getInts(ints2, 0, 37, 100);
-        assertEquals(ints, ints2);
+        assertArrayEquals(ints, ints2);
       }
     }
   }
