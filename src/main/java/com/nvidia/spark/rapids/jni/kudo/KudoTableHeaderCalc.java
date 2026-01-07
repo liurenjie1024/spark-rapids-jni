@@ -63,13 +63,16 @@ class KudoTableHeaderCalc implements HostColumnsVisitor {
     long paddedValiditySize = padForValidityAlignment(validityBufferLen, headerSize);
     long paddedOffsetsSize = padForHostAlignment(offsetBufferLen);
     long paddedDataSize = padForHostAlignment(dataOnlyLen);
+    // Add 4 bytes for CRC32 checksum at the end
+    int checksumSize = Integer.BYTES;
     return new KudoTableHeader(toIntExact(root.offset),
         toIntExact(root.rowCount),
         toIntExact(paddedValiditySize),
         toIntExact(paddedOffsetsSize),
         toIntExact(paddedValiditySize +
             paddedOffsetsSize +
-            paddedDataSize),
+            paddedDataSize +
+            checksumSize),
         numFlattenedCols,
         bitset);
   }

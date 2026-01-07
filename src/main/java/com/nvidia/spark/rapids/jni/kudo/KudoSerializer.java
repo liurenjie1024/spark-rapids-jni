@@ -441,16 +441,24 @@ public class KudoSerializer {
     header.writeTo(out);
     metrics.addWrittenBytes(header.getSerializedSize());
 
+    // Wrap the writer with ChecksumDataWriter to calculate CRC32 of the data buffer
+    ChecksumDataWriter checksumWriter = new ChecksumDataWriter(out);
+
     long bytesWritten = 0;
     for (BufferType bufferType : ALL_BUFFER_TYPES) {
       SlicedBufferSerializer serializer = new SlicedBufferSerializer(rowOffset,
           numRows, bufferType,
-          out, metrics, measureCopyBufferTime,
+          checksumWriter, metrics, measureCopyBufferTime,
           header.getSerializedSize());
       Visitors.visitColumns(columns, serializer);
       bytesWritten += serializer.getTotalDataLen();
       metrics.addWrittenBytes(serializer.getTotalDataLen());
     }
+
+    // Write the checksum at the end
+    checksumWriter.writeChecksum();
+    bytesWritten += Integer.BYTES;
+    metrics.addWrittenBytes(Integer.BYTES);
 
     if (bytesWritten != header.getTotalDataLen()) {
       throw new IllegalStateException("Header total data length: " + header.getTotalDataLen() +

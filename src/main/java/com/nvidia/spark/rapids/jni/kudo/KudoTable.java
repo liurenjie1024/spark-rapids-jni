@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.zip.CRC32;
 
 import static com.nvidia.spark.rapids.jni.kudo.KudoSerializer.readerFrom;
 import static java.util.Objects.requireNonNull;
@@ -90,6 +91,39 @@ public class KudoTable implements AutoCloseable {
         "header=" + header +
         ", buffer=" + buffer +
         '}';
+  }
+
+  /**
+   * Verify the CRC32 checksum of the data buffer.
+   * The checksum is stored in the last 4 bytes of the buffer.
+   *
+   * @return true if the checksum is valid, false otherwise
+   * @throws IllegalStateException if the buffer is null or too small to contain a checksum
+   */
+  public boolean verifyChecksum() {
+    if (buffer == null) {
+      throw new IllegalStateException("Cannot verify checksum on null buffer");
+    }
+
+    long bufferLen = buffer.getLength();
+    if (bufferLen < Integer.BYTES) {
+      throw new IllegalStateException("Buffer is too small to contain a checksum");
+    }
+
+    // The last 4 bytes contain the stored checksum
+    long checksumOffset = bufferLen - Integer.BYTES;
+    int storedChecksum = buffer.getInt(checksumOffset);
+
+    // Calculate checksum over all data except the last 4 bytes (the checksum itself)
+    CRC32 crc32 = new CRC32();
+    long dataLen = bufferLen - Integer.BYTES;
+    byte[] data = new byte[(int) dataLen];
+    buffer.getBytes(data, 0, 0, (int) dataLen);
+    crc32.update(data);
+
+    int calculatedChecksum = (int) crc32.getValue();
+
+    return storedChecksum == calculatedChecksum;
   }
 
   @Override

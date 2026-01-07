@@ -88,6 +88,76 @@ public class KudoSerializerTest extends CudfTestBase {
   }
 
   @Test
+  public void testChecksumVerification() throws Exception {
+    // Create a simple table
+    try (Table table = new Table.TestBuilder()
+        .column(1, 2, 3, 4, 5)
+        .column("a", "b", "c", "d", "e")
+        .build()) {
+      
+      KudoSerializer serializer = new KudoSerializer(schemaOf(table));
+      
+      // Serialize the table
+      OpenByteArrayOutputStream out = new OpenByteArrayOutputStream();
+      serializer.writeToStreamWithMetrics(table, out, 0, 5);
+      out.flush();
+      
+      // Deserialize into KudoTable
+      ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+      try (KudoTable kudoTable = KudoTable.from(in).get()) {
+        // Verify checksum is valid
+        assertTrue(kudoTable.verifyChecksum(), "Checksum should be valid for uncorrupted data");
+        
+        // Corrupt the data buffer and verify checksum fails
+        HostMemoryBuffer buffer = kudoTable.getBuffer();
+        if (buffer != null && buffer.getLength() > 10) {
+          // Save original byte
+          byte originalByte = buffer.getByte(5);
+          // Corrupt a byte in the middle of the buffer
+          buffer.setByte(5, (byte) (originalByte + 1));
+          
+          // Verify checksum now fails
+          assertFalse(kudoTable.verifyChecksum(), "Checksum should fail for corrupted data");
+          
+          // Restore the original byte
+          buffer.setByte(5, originalByte);
+          
+          // Verify checksum is valid again
+          assertTrue(kudoTable.verifyChecksum(), "Checksum should be valid after restoring data");
+        }
+      }
+    }
+  }
+
+  @Test
+  public void testChecksumWithComplexTable() throws Exception {
+    // Test checksum with a more complex table
+    try (Table table = buildTestTable()) {
+      KudoSerializer serializer = new KudoSerializer(schemaOf(table));
+      
+      // Test with different slices
+      for (int sliceSize = (int) table.getRowCount(); sliceSize >= 1; sliceSize -= 5) {
+        for (int startRow = 0; startRow < table.getRowCount(); startRow += sliceSize) {
+          int numRows = Math.min(sliceSize, (int) (table.getRowCount() - startRow));
+          
+          // Serialize the table slice
+          OpenByteArrayOutputStream out = new OpenByteArrayOutputStream();
+          serializer.writeToStreamWithMetrics(table, out, startRow, numRows);
+          out.flush();
+          
+          // Deserialize into KudoTable
+          ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+          try (KudoTable kudoTable = KudoTable.from(in).get()) {
+            // Verify checksum is valid
+            assertTrue(kudoTable.verifyChecksum(), 
+                "Checksum should be valid for slice [" + startRow + ", " + (startRow + numRows) + ")");
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   public void testSerializeAndDeserializeEmptyStructTable() {
     try(Table expected = buildEmptyStructTable()) {
       int rowCount = toIntExact(expected.getRowCount());
@@ -112,7 +182,8 @@ public class KudoSerializerTest extends CudfTestBase {
       OpenByteArrayOutputStream out = new OpenByteArrayOutputStream();
       long bytesWritten = serializer.writeToStreamWithMetrics(t, out, 0, 4).getWrittenBytes();
 
-      assertEquals(172, bytesWritten);
+      // Updated to 176 (was 172) because of the 4-byte checksum
+      assertEquals(176, bytesWritten);
 
       ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
 
@@ -122,7 +193,8 @@ public class KudoSerializerTest extends CudfTestBase {
       assertEquals(4, header.getNumRows());
       assertEquals(7, header.getValidityBufferLen());
       assertEquals(40, header.getOffsetBufferLen());
-      assertEquals(143, header.getTotalDataLen());
+      // Updated to 147 (was 143) because of the 4-byte checksum
+      assertEquals(147, header.getTotalDataLen());
 
       // First integer column has no validity buffer
       assertFalse(header.hasValidityBuffer(0));
