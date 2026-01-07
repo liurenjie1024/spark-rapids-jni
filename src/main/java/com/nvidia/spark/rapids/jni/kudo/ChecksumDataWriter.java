@@ -53,11 +53,12 @@ class ChecksumDataWriter implements DataWriter {
 
   @Override
   public void copyDataFrom(HostMemoryBuffer src, long srcOffset, long len) throws IOException {
-    underlying.copyDataFrom(src, srcOffset, len);
-    // Update checksum with the data from the buffer
+    // First, read the bytes from the buffer to update checksum
     byte[] bytes = new byte[(int) len];
     src.getBytes(bytes, 0, srcOffset, (int) len);
     crc32.update(bytes);
+    // Then write to underlying
+    underlying.copyDataFrom(src, srcOffset, len);
   }
 
   @Override
