@@ -16,7 +16,10 @@
 
 package com.nvidia.spark.rapids.jni.fileio;
 
+import ai.rapids.cudf.HostMemoryBuffer;
+
 import java.io.IOException;
+import java.util.List;
 import java.util.OptionalLong;
 
 /**
@@ -55,4 +58,63 @@ public interface RapidsInputFile {
    * @throws IOException if an I/O error occurs while opening the file
    */
   SeekableInputStream open() throws IOException;
+
+  /**
+   * Reads data from the input file into the provided output buffer using vectored reads.
+   * <br/>
+   * The default implementation throws an {@link UnsupportedOperationException}. Concrete
+   * implementations can override this method to provide a backend-specific implementation.
+   *
+   * @param output the buffer to read data into
+   * @param copyRanges a list of copy ranges specifying the input offsets, lengths,
+   *                   and output offsets
+   * @throws IOException if an I/O error occurs during reading
+   */
+  default void readVectored(HostMemoryBuffer output, List<CopyRange> copyRanges)
+      throws IOException {
+    throw new UnsupportedOperationException(
+        "readVectored is not implemented for " + this.getClass().getName());
+  }
+
+  /**
+   * Reads the last length bytes of the input file into the provided output buffer.
+   * <br/>
+   * The default implementation throws an {@link UnsupportedOperationException}. Concrete
+   * implementations can override this method to provide a backend-specific implementation.
+   *
+   * @param length the number of bytes to read from the tail
+   * @param output the buffer to read data into
+   * @throws IOException if an I/O error occurs during reading
+   */
+  default void readTail(long length, HostMemoryBuffer output) throws IOException {
+    throw new UnsupportedOperationException(
+        "readTail is not implemented for " + this.getClass().getName());
+  }
+
+  /**
+   * A range describing how bytes should be copied from the input file into an output buffer.
+   */
+  final class CopyRange {
+    private final long inputOffset;
+    private final long length;
+    private final long outputOffset;
+
+    public CopyRange(long inputOffset, long length, long outputOffset) {
+      this.inputOffset = inputOffset;
+      this.length = length;
+      this.outputOffset = outputOffset;
+    }
+
+    public long getInputOffset() {
+      return inputOffset;
+    }
+
+    public long getLength() {
+      return length;
+    }
+
+    public long getOutputOffset() {
+      return outputOffset;
+    }
+  }
 }
